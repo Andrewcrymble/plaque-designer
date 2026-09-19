@@ -161,11 +161,11 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V37 Exact Match</button>
-<div class="note" style="margin-top:8px"><b>V37 exact-match:</b> the downloaded wording now uses the same browser-resolved font, size and baseline position as the Exact Laser Layout. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V38 Exact Match</button>
+<div class="note" style="margin-top:8px"><b>V38 exact-match:</b> the downloaded wording now uses the same browser-resolved font, size and baseline position as the Exact Laser Layout. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>Important:</b> browser fonts depend on fonts installed on your computer. For guaranteed identical lettering on another computer, text should eventually be converted to vector paths.</p>
+<p class="note"><b>Important:</b> V38 exports the exact same SVG text objects, font sizes and X/Y positions shown in Exact Laser Layout. The receiving computer still needs the same font installed; true font-to-path conversion requires the actual font file.</p>
 </aside><main>
 <div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">Exact Laser Layout</button></div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
@@ -562,85 +562,60 @@ async function freezeTextToPNG(text, fontFamily, fontSizeMm, fill, maxWidthMm=nu
 }
 
 async function buildSideBySideLaserSVG(){
-  const laserArt=await exportArtForLaser();
-  const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
-  const rightX=165;
-  const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
-  const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
-  const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
+   const laserArt=await exportArtForLaser();
+   const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
+   const rightX=165;
+   const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
+   const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
+   const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
 
-  const mainFont=customMainFont||q('font').value;
-  const smallFont=customSmallFont||q('font2').value;
-  const verseFont=q('font3').value;
+   // IMPORTANT: these are the exact same text objects/coordinates used in Exact Laser Layout.
+   // No PNG freezing, no second font-size calculation, and no export-only repositioning.
+   const cutWords=exportCutWords(75)
+      .replaceAll('#1261d6','#ff0000')
+      .replaceAll('#0066dd','#ff0000')
+      .replaceAll('#06d','#ff0000');
 
-  // Freeze the browser-rendered lettering so other SVG programs cannot substitute fonts.
-  const mainImg=await freezeTextToPNG(q('txt').value,mainFont,+q('fs').value,'#000000',125);
-  const smallImg=await freezeTextToPNG(q('small').value,smallFont,+q('ss').value,'#000000',125);
-  const verseImg=await freezeTextToPNG(q('verse').value,verseFont,+q('vs').value,'#000000',125);
+   const ring=(ringOuterPath(75,75,74.9,false)
+     + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
+     .replaceAll('#e00000','#ff0000');
 
-  const mainW=mainImg.widthMm, smallW=smallImg.widthMm, verseW=verseImg.widthMm;
-  const mainH=mainImg.heightMm, smallH=smallImg.heightMm, verseH=verseImg.heightMm;
+   const verse=exportVerse(75);
 
-  // Preview uses x = stored x - 10. Keep the same centre points here.
-  const mainCx=pos.main.x-10;
-  const smallCx=pos.small.x-10;
-  const verseCx=pos.verse.x-10;
+   return `<?xml version="1.0" encoding="UTF-8"?>
+   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+        width="315mm" height="${150+loopExtra}mm"
+        viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V38</title>
+     <metadata id="LASER_SETTINGS">${JSON.stringify({
+       version:"V38",
+       layout:"exact same SVG text, font-size and coordinates as preview",
+       cut:{speed_mm_min:cs,power_percent:cp},
+       image_engrave:{speed_mm_min:is,power_percent:ip},
+       line_engrave:{speed_mm_min:ls,power_percent:lp}
+     })}</metadata>
 
-  const ring=(ringOuterPath(75,75,74.9,false)
-    + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
-    .replaceAll('#e00000','#ff0000').replaceAll('#1261d6','#ff0000');
+     <g id="LEFT_BACK_PLATE">
+       <g id="CUT_BACK_${cs}mm-min_${cp}pct" data-operation="cut">
+         <circle cx="75" cy="75" r="74.9" fill="none" stroke="#ff0000" stroke-width=".25"/>
+       </g>
+       <g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct" data-operation="image-engrave">
+         ${laserArt}
+       </g>
+       <g id="REFERENCE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave">
+         ${verse}
+       </g>
+     </g>
 
-  // NOTE: browser-frozen wording is embedded as monochrome artwork to preserve exact appearance.
-  // Falcon can trace/vectorise these if a true cut outline is required.
-  const cutGroup=`
-  <g id="CUT_GEOMETRY_${cs}mm-min_${cp}pct" data-operation="cut"
-     data-speed-mm-min="${cs}" data-power-percent="${cp}">
-    <circle cx="75" cy="75" r="74.9" fill="none" stroke="#ff0000" stroke-width=".25"/>
-    <g transform="translate(${rightX} 0)">${ring}</g>
-  </g>`;
-
-  const frozenWords=`
-  <g id="FROZEN_WORDING" data-operation="wording-frozen">
-    <image x="${rightX+mainCx+mainImg.xOffsetMm}" y="${pos.main.y+mainImg.yOffsetMm}"
-      width="${mainW}" height="${mainH}" href="${mainImg.url}" xlink:href="${mainImg.url}"
-      preserveAspectRatio="none"/>
-    <image x="${rightX+smallCx+smallImg.xOffsetMm}" y="${pos.small.y+smallImg.yOffsetMm}"
-      width="${smallW}" height="${smallH}" href="${smallImg.url}" xlink:href="${smallImg.url}"
-      preserveAspectRatio="none"/>
-  </g>`;
-
-  const referenceGroup=`
-  <g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave"
-     data-speed-mm-min="${ls}" data-power-percent="${lp}">
-    <image x="${verseCx+verseImg.xOffsetMm}" y="${pos.verse.y+verseImg.yOffsetMm}"
-      width="${verseW}" height="${verseH}" href="${verseImg.url}" xlink:href="${verseImg.url}"
-      preserveAspectRatio="none"/>
-  </g>`;
-
-  const imageGroup=`
-  <g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct" data-operation="image-engrave"
-     data-speed-mm-min="${is}" data-power-percent="${ip}">
-    ${laserArt}
-  </g>`;
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-       width="315mm" height="${150+loopExtra}mm"
-       viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-    <title>${safeFileName(q('txt').value)} - Laser Plaque V37</title>
-    <metadata id="LASER_SETTINGS">${JSON.stringify({
-      version:"V37",
-      text_export:"browser-rendered exact-font PNG with SVG baseline preserved",
-      cut:{speed_mm_min:cs,power_percent:cp},
-      image_engrave:{speed_mm_min:is,power_percent:ip},
-      line_engrave:{speed_mm_min:ls,power_percent:lp}
-    })}</metadata>
-    ${cutGroup}
-    ${frozenWords}
-    ${referenceGroup}
-    ${imageGroup}
-  </svg>`;
+     <g id="RIGHT_FRONT_RING_AND_WORDING" transform="translate(${rightX} 0)">
+       <g id="CUT_FRONT_${cs}mm-min_${cp}pct" data-operation="cut">
+         ${ring}
+         ${cutWords}
+       </g>
+     </g>
+   </svg>`;
 }
+
 async function downloadSideBySideLaserSVG(){
  try{
    const svg=await buildSideBySideLaserSVG();

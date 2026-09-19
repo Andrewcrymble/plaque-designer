@@ -161,8 +161,8 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG</button>
-<div class="note" style="margin-top:8px"><b>V33 exact-layout:</b> tap <b>Exact Laser Layout</b> before downloading. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V34 Exact</button>
+<div class="note" style="margin-top:8px"><b>V34 exact-layout:</b> tap <b>Exact Laser Layout</b> before downloading. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
 <p class="note"><b>Important:</b> browser fonts depend on fonts installed on your computer. For guaranteed identical lettering on another computer, text should eventually be converted to vector paths.</p>
@@ -511,66 +511,77 @@ function safeFileName(v){
 }
 
 async function buildSideBySideLaserSVG(){
- const laserArt=await exportArtForLaser();
- const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
- const rightX=165;
+  // V34: build the download from the SAME geometry and SAME coordinates used by
+  // Exact Laser Layout. No independent text-position calculations are used.
+  const laserArt=await exportArtForLaser();
+  const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
+  const rightX=165;
 
- const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
- const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
- const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
+  const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
+  const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
+  const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
 
- // RED CUT geometry: left outer circle + all right-hand cutting.
- const rightCut=(ringOuterPath(75,75,74.9,false)
-   + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`
-   + exportCutWords(75))
-   .replaceAll('#e00000','#ff0000')
-   .replaceAll('#0066dd','#ff0000')
-   .replaceAll('#06d','#ff0000')
-   .replaceAll('stroke="#000000"','stroke="#ff0000"');
+  // These coordinates intentionally mirror draw() -> Exact Laser Layout.
+  const mainX=pos.main.x-10;
+  const smallX=pos.small.x-10;
+  const verseX=pos.verse.x-10;
+  const mainFont=customMainFont||q('font').value;
+  const smallFont=customSmallFont||q('font2').value;
 
- const cutGroup=`
- <g id="CUT_${cs}mm-min_${cp}pct"
-    data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}"
-    stroke="#ff0000" fill="none">
-   <circle cx="75" cy="75" r="74.9" fill="none" stroke="#ff0000" stroke-width=".25"/>
-   <g transform="translate(${rightX} 0)">${rightCut}</g>
- </g>`;
+  // Match the browser's visible width-constraining rule in the export as closely
+  // as SVG text permits, while preserving the exact x/y/font-size values.
+  const mainEst=q('txt').value.length*(+q('fs').value)*0.58;
+  const smallEst=q('small').value.length*(+q('ss').value)*0.58;
+  const mainFit=mainEst>125 ? ` textLength="125" lengthAdjust="spacingAndGlyphs"` : '';
+  const smallFit=smallEst>125 ? ` textLength="125" lengthAdjust="spacingAndGlyphs"` : '';
 
- // BLACK line engraving: reference on LEFT only.
- const ref=exportVerse(75)
-   .replaceAll(q('cVerse').value,'#000000')
-   .replaceAll('#ff0000','#000000')
-   .replaceAll('#e00000','#000000');
- const lineGroup=`
- <g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct"
-    data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"
-    fill="#000000" stroke="#000000">
-   ${ref}
- </g>`;
+  const rightCut=(ringOuterPath(75,75,74.9,false)
+    + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`
+    + `<text x="${mainX}" y="${pos.main.y}" text-anchor="middle" font-family="${mainFont}" font-size="${q('fs').value}" fill="none" stroke="#ff0000"${mainFit}>${esc(q('txt').value)}</text>
+       <text x="${smallX}" y="${pos.small.y}" text-anchor="middle" font-family="${smallFont}" font-size="${q('ss').value}" fill="none" stroke="#ff0000"${smallFit}>${esc(q('small').value)}</text>`)
+    .replaceAll('#e00000','#ff0000')
+    .replaceAll('#1261d6','#ff0000');
 
- // BLACK raster/image engraving: background image on LEFT only.
- const imageGroup=`
- <g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct"
-    data-operation="image-engrave" data-speed-mm-min="${is}" data-power-percent="${ip}">
-   ${laserArt}
- </g>`;
+  const cutGroup=`
+  <g id="CUT_${cs}mm-min_${cp}pct"
+     data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}"
+     stroke="#ff0000" fill="none">
+    <circle cx="75" cy="75" r="74.9" fill="none" stroke="#ff0000" stroke-width=".25"/>
+    <g transform="translate(${rightX} 0)">${rightCut}</g>
+  </g>`;
 
- const metadata={
-   cut:{speed_mm_min:cs,power_percent:cp,color:"red"},
-   image_engrave:{speed_mm_min:is,power_percent:ip,color:"black"},
-   line_engrave:{speed_mm_min:ls,power_percent:lp,color:"black"}
- };
+  const lineGroup=`
+  <g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct"
+     data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}">
+    <text x="${verseX}" y="${pos.verse.y}" text-anchor="middle"
+      font-family="${q('font3').value}" font-size="${q('vs').value}"
+      fill="#000000" stroke="none">${esc(q('verse').value)}</text>
+  </g>`;
 
- return `<?xml version="1.0" encoding="UTF-8"?>
- <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-      width="315mm" height="${150+loopExtra}mm"
-      viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-   <title>${safeFileName(q('txt').value)} - Laser Plaque</title>
-   <metadata id="LASER_SETTINGS">${JSON.stringify(metadata)}</metadata>
-   ${cutGroup}
-   ${lineGroup}
-   ${imageGroup}
- </svg>`;
+  const imageGroup=`
+  <g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct"
+     data-operation="image-engrave" data-speed-mm-min="${is}" data-power-percent="${ip}">
+    ${laserArt}
+  </g>`;
+
+  const metadata={
+    version:"V34",
+    geometry:"Exact Laser Layout coordinates",
+    cut:{speed_mm_min:cs,power_percent:cp,color:"red"},
+    image_engrave:{speed_mm_min:is,power_percent:ip,color:"black"},
+    line_engrave:{speed_mm_min:ls,power_percent:lp,color:"black"}
+  };
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+       width="315mm" height="${150+loopExtra}mm"
+       viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
+    <title>${safeFileName(q('txt').value)} - Laser Plaque V34</title>
+    <metadata id="LASER_SETTINGS">${JSON.stringify(metadata)}</metadata>
+    ${cutGroup}
+    ${lineGroup}
+    ${imageGroup}
+  </svg>`;
 }
 async function downloadSideBySideLaserSVG(){
  try{

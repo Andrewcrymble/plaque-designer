@@ -161,11 +161,11 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V39 Exact Match</button>
-<div class="note" style="margin-top:8px"><b>V39 exact-match:</b> the downloaded wording now uses the same browser-resolved font, size and baseline position as the Exact Laser Layout. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V40 Vector Text</button>
+<div class="note" style="margin-top:8px"><b>V40 vector text:</b> wording and reference are rendered in this browser, traced into real SVG paths, and exported without live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>Important:</b> V39 exports the exact same SVG text objects, font sizes and X/Y positions shown in Exact Laser Layout. The receiving computer still needs the same font installed; true font-to-path conversion requires the actual font file.</p>
+<p class="note"><b>V40:</b> exported lettering is converted to vector outlines in the browser before download. The receiving computer does not need the font installed.</p>
 </aside><main>
 <div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">Exact Laser Layout</button></div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
@@ -590,6 +590,67 @@ function exactRenderedCutWords(){
   return out;
 }
 
+
+function simplifyLoop(points){
+  if(points.length<4) return points;
+  // Remove points that are exactly collinear on the pixel boundary grid.
+  let a=[];
+  for(let i=0;i<points.length;i++){
+    const p0=points[(i-1+points.length)%points.length], p=points[i], p1=points[(i+1)%points.length];
+    if((p.x-p0.x)*(p1.y-p.y)===(p.y-p0.y)*(p1.x-p.x)) continue;
+    a.push(p);
+  }
+  return a.length>=3?a:points;
+}
+
+async function vectorizeBrowserText(text,fontFamily,fontSizeMm,xMm,yMm,maxWidthMm,mode='cut'){
+  if(!text) return '';
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  const ppm=8; // 8 pixels per mm gives a clean laser outline while staying iPad-friendly.
+  const W=Math.ceil(150*ppm), H=Math.ceil(150*ppm);
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  const family=canvasFontFamily(fontFamily);
+  const fsPx=(+fontSizeMm)*ppm;
+  ctx.font=`${fsPx}px ${family}`; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  const measured=Math.max(1,ctx.measureText(text).width);
+  const maxPx=(maxWidthMm||125)*ppm;
+  const sx=Math.min(1,maxPx/measured);
+  ctx.save();
+  ctx.translate(xMm*ppm,yMm*ppm); ctx.scale(sx,1);
+  ctx.fillStyle='#000'; ctx.fillText(text,0,0); ctx.restore();
+  const data=ctx.getImageData(0,0,W,H).data;
+  const on=(x,y)=> x>=0&&y>=0&&x<W&&y<H && data[(y*W+x)*4+3]>=96;
+  // Add only exposed pixel edges. Their orientation preserves outer contours and holes.
+  const next=new Map();
+  const key=(x,y)=>x+','+y;
+  const edge=(x1,y1,x2,y2)=>next.set(key(x1,y1),{x:x2,y:y2});
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(on(x,y)){
+    if(!on(x,y-1)) edge(x,y,x+1,y);
+    if(!on(x+1,y)) edge(x+1,y,x+1,y+1);
+    if(!on(x,y+1)) edge(x+1,y+1,x,y+1);
+    if(!on(x-1,y)) edge(x,y+1,x,y);
+  }
+  const loops=[];
+  while(next.size){
+    const first=next.keys().next().value;
+    const [sx0,sy0]=first.split(',').map(Number);
+    let cur={x:sx0,y:sy0}, pts=[], guard=0;
+    do{
+      pts.push(cur); const k=key(cur.x,cur.y), n=next.get(k); next.delete(k);
+      if(!n) break; cur=n; if(++guard>200000) break;
+    }while(cur.x!==sx0||cur.y!==sy0);
+    if(pts.length>3) loops.push(simplifyLoop(pts));
+  }
+  const d=loops.map(loop=>{
+    const pts=loop.map(p=>({x:p.x/ppm,y:p.y/ppm}));
+    return 'M '+pts.map((p,i)=>`${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(' L ')+' Z';
+  }).join(' ');
+  if(!d) return '';
+  if(mode==='cut') return `<path d="${d}" fill="none" stroke="#ff0000" stroke-width=".25" fill-rule="evenodd"/>`;
+  return `<path d="${d}" fill="#000000" stroke="none" fill-rule="evenodd"/>`;
+}
+
 async function buildSideBySideLaserSVG(){
    const laserArt=await exportArtForLaser();
    const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
@@ -602,21 +663,22 @@ async function buildSideBySideLaserSVG(){
    // No PNG freezing, no second font-size calculation, and no export-only repositioning.
    // Copy the ACTUAL rendered wording from Exact Laser Layout.
    // This preserves the same browser-resolved font, size, baseline and width-fit transform.
-   const cutWords=exactRenderedCutWords();
+   const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x-10,pos.main.y,125,'cut'))
+     +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x-10,pos.small.y,125,'cut'));
 
    const ring=(ringOuterPath(75,75,74.9,false)
      + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
      .replaceAll('#e00000','#ff0000');
 
-   const verse=exportVerse(75);
+   const verse=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x-10,pos.verse.y,125,'engrave');
 
    return `<?xml version="1.0" encoding="UTF-8"?>
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V39</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V40</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V39",
+       version:"V40",
        layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},

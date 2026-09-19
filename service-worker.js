@@ -1,4 +1,4 @@
-const CACHE = "plaque-designer-v36";
+const CACHE = "plaque-designer-v37";
 self.addEventListener("install", event => {
   self.skipWaiting();
 });

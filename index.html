@@ -161,8 +161,8 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V36 Frozen Text</button>
-<div class="note" style="margin-top:8px"><b>V36 frozen-text:</b> tap <b>Exact Laser Layout</b> before downloading. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V37 Exact Match</button>
+<div class="note" style="margin-top:8px"><b>V37 exact-match:</b> the downloaded wording now uses the same browser-resolved font, size and baseline position as the Exact Laser Layout. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
 <p class="note"><b>Important:</b> browser fonts depend on fonts installed on your computer. For guaranteed identical lettering on another computer, text should eventually be converted to vector paths.</p>
@@ -511,33 +511,53 @@ function safeFileName(v){
 }
 
 
+function canvasFontFamily(fontFamily){
+  // SVG accepts unquoted font stacks such as "Brush Script MT, Snell Roundhand, cursive".
+  // Canvas font shorthand needs family names containing spaces quoted individually.
+  return String(fontFamily||'serif').split(',').map(v=>{
+    v=v.trim();
+    if(!v) return '';
+    if(/^(serif|sans-serif|cursive|fantasy|monospace|system-ui)$/i.test(v)) return v;
+    return `"${v.replaceAll('"','')}"`;
+  }).filter(Boolean).join(', ');
+}
+
 async function freezeTextToPNG(text, fontFamily, fontSizeMm, fill, maxWidthMm=null){
-  // Render with the browser's CURRENT font engine, so exported appearance matches preview.
-  const pxPerMm = 8; // high resolution for laser import
-  const canvas=document.createElement('canvas');
-  const ctx=canvas.getContext('2d');
+  // Render with THIS browser's resolved font and preserve the SVG text baseline exactly.
+  // This prevents another SVG program substituting Times/Arial and changing size/position.
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  const pxPerMm=10;
   const fsPx=fontSizeMm*pxPerMm;
-  ctx.font=`${fsPx}px "${fontFamily}"`;
-  let m=ctx.measureText(text);
-  let naturalW=Math.max(1,Math.ceil(m.width));
-  let targetW=naturalW;
-  if(maxWidthMm) targetW=Math.min(targetW,Math.ceil(maxWidthMm*pxPerMm));
-  const h=Math.ceil(fsPx*1.6);
-  canvas.width=Math.max(4,naturalW+24);
-  canvas.height=Math.max(4,h+24);
+  const family=canvasFontFamily(fontFamily);
+  const probe=document.createElement('canvas').getContext('2d');
+  probe.font=`${fsPx}px ${family}`;
+  const m=probe.measureText(text);
+  const left=Math.max(0,m.actualBoundingBoxLeft||0);
+  const right=Math.max(1,m.actualBoundingBoxRight||m.width||1);
+  const ascent=Math.max(1,m.actualBoundingBoxAscent||fsPx*.8);
+  const descent=Math.max(1,m.actualBoundingBoxDescent||fsPx*.25);
+  const contentW=left+right;
+  const contentH=ascent+descent;
+  const padPx=12;
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.ceil(contentW+padPx*2);
+  canvas.height=Math.ceil(contentH+padPx*2);
   const c=canvas.getContext('2d');
   c.clearRect(0,0,canvas.width,canvas.height);
-  c.font=`${fsPx}px "${fontFamily}"`;
-  c.textAlign='center';
-  c.textBaseline='middle';
+  c.font=`${fsPx}px ${family}`;
+  c.textAlign='left';
+  c.textBaseline='alphabetic';
   c.fillStyle=fill;
-  c.fillText(text,canvas.width/2,canvas.height/2);
-  let url=canvas.toDataURL('image/png');
+  c.fillText(text,padPx+left,padPx+ascent);
+  const naturalContentMm=contentW/pxPerMm;
+  const scaleX=maxWidthMm && naturalContentMm>maxWidthMm ? maxWidthMm/naturalContentMm : 1;
   return {
-    url,
-    naturalWidthMm:canvas.width/pxPerMm,
+    url:canvas.toDataURL('image/png'),
+    widthMm:(canvas.width/pxPerMm)*scaleX,
     heightMm:canvas.height/pxPerMm,
-    targetWidthMm:targetW/pxPerMm
+    // Offsets from SVG text anchor centre/baseline to image top-left.
+    xOffsetMm:-(canvas.width/pxPerMm)*scaleX/2,
+    yOffsetMm:-(padPx+ascent)/pxPerMm
   };
 }
 
@@ -558,9 +578,7 @@ async function buildSideBySideLaserSVG(){
   const smallImg=await freezeTextToPNG(q('small').value,smallFont,+q('ss').value,'#000000',125);
   const verseImg=await freezeTextToPNG(q('verse').value,verseFont,+q('vs').value,'#000000',125);
 
-  const mainW=Math.min(125,mainImg.naturalWidthMm);
-  const smallW=Math.min(125,smallImg.naturalWidthMm);
-  const verseW=Math.min(125,verseImg.naturalWidthMm);
+  const mainW=mainImg.widthMm, smallW=smallImg.widthMm, verseW=verseImg.widthMm;
   const mainH=mainImg.heightMm, smallH=smallImg.heightMm, verseH=verseImg.heightMm;
 
   // Preview uses x = stored x - 10. Keep the same centre points here.
@@ -583,10 +601,10 @@ async function buildSideBySideLaserSVG(){
 
   const frozenWords=`
   <g id="FROZEN_WORDING" data-operation="wording-frozen">
-    <image x="${rightX+mainCx-mainW/2}" y="${pos.main.y-mainH/2}"
+    <image x="${rightX+mainCx+mainImg.xOffsetMm}" y="${pos.main.y+mainImg.yOffsetMm}"
       width="${mainW}" height="${mainH}" href="${mainImg.url}" xlink:href="${mainImg.url}"
       preserveAspectRatio="none"/>
-    <image x="${rightX+smallCx-smallW/2}" y="${pos.small.y-smallH/2}"
+    <image x="${rightX+smallCx+smallImg.xOffsetMm}" y="${pos.small.y+smallImg.yOffsetMm}"
       width="${smallW}" height="${smallH}" href="${smallImg.url}" xlink:href="${smallImg.url}"
       preserveAspectRatio="none"/>
   </g>`;
@@ -594,7 +612,7 @@ async function buildSideBySideLaserSVG(){
   const referenceGroup=`
   <g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave"
      data-speed-mm-min="${ls}" data-power-percent="${lp}">
-    <image x="${verseCx-verseW/2}" y="${pos.verse.y-verseH/2}"
+    <image x="${verseCx+verseImg.xOffsetMm}" y="${pos.verse.y+verseImg.yOffsetMm}"
       width="${verseW}" height="${verseH}" href="${verseImg.url}" xlink:href="${verseImg.url}"
       preserveAspectRatio="none"/>
   </g>`;
@@ -609,10 +627,10 @@ async function buildSideBySideLaserSVG(){
   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
        width="315mm" height="${150+loopExtra}mm"
        viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-    <title>${safeFileName(q('txt').value)} - Laser Plaque V36</title>
+    <title>${safeFileName(q('txt').value)} - Laser Plaque V37</title>
     <metadata id="LASER_SETTINGS">${JSON.stringify({
-      version:"V36",
-      text_export:"browser-rendered frozen PNG to prevent font substitution",
+      version:"V37",
+      text_export:"browser-rendered exact-font PNG with SVG baseline preserved",
       cut:{speed_mm_min:cs,power_percent:cp},
       image_engrave:{speed_mm_min:is,power_percent:ip},
       line_engrave:{speed_mm_min:ls,power_percent:lp}

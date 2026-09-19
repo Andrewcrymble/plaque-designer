@@ -1,0 +1,11 @@
+UPLOAD TO THE ROOT OF YOUR GitHub plaque-designer REPOSITORY:
+
+1. index.html
+2. service-worker.js
+3. manifest.webmanifest
+4. icon.svg
+
+Replace the existing files with these versions.
+Delete index_ipad_fixed.html afterwards if you wish.
+
+This package uses a new v32 cache so Safari/iPad should stop serving the old page.

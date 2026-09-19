@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="105" fill="#ffffff"/>
+<circle cx="256" cy="268" r="165" fill="none" stroke="#e00000" stroke-width="24"/>
+<path d="M215 108 Q256 50 297 108 L286 146 H226Z" fill="none" stroke="#e00000" stroke-width="22" stroke-linejoin="round"/>
+<circle cx="256" cy="105" r="14" fill="none" stroke="#e00000" stroke-width="12"/>
+<text x="256" y="280" text-anchor="middle" font-family="Georgia,serif" font-size="70" font-weight="700">Be Still</text>
+<text x="256" y="330" text-anchor="middle" font-family="Courier New,monospace" font-size="28">PLAQUE</text>
+</svg>

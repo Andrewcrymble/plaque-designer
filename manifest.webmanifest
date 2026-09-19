@@ -1,0 +1,17 @@
+{
+  "name": "Laser Plaque Designer",
+  "short_name": "Plaque Designer",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "Touch-friendly laser plaque designer for iPad and desktop.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

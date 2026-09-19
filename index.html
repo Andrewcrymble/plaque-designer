@@ -162,11 +162,12 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
 <button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG</button>
+<div class="note" style="margin-top:8px"><b>V33 exact-layout:</b> tap <b>Exact Laser Layout</b> before downloading. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
 <p class="note"><b>Important:</b> browser fonts depend on fonts installed on your computer. For guaranteed identical lettering on another computer, text should eventually be converted to vector paths.</p>
 </aside><main>
-<div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">3 Layers</button></div>
+<div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">Exact Laser Layout</button></div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
@@ -332,25 +333,26 @@ if(mode==='assembled') {
  let ar=s.querySelector('#drag-art'); if(ar){ar.setAttribute('stroke',q('cArt').value);ar.setAttribute('color',q('cArt').value)}
 }
 else {
- s.setAttribute('viewBox',q('loopOn').checked?'0 -20 500 190':'0 0 500 170');
+ // EXACT LASER LAYOUT PREVIEW.
+ // These are the same 315 mm coordinates used by the downloaded SVG.
+ const rightX=165;
+ const extra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
+ s.setAttribute('viewBox',`0 -${extra} 315 ${150+extra}`);
+ const rightCut=(ringOuterPath(75,75,74.9,true)
+   + `<circle cx="75" cy="75" r="67.5" fill="#ffffff" stroke="#ff0000" stroke-width=".25"/>`
+   + `<text x="${pos.main.x-10}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text>
+      <text x="${pos.small.x-10}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text>`)
+   .replaceAll('#e00000','#ff0000');
  s.innerHTML=`
- <g>
-   ${ringOuterPath(80,85,75,true)}
-   <circle cx="80" cy="85" r="67.5" fill="#ffffff" stroke="#e00000" stroke-width=".35"/>
-   <text x="${pos.main.x-5}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" class="letter">${esc(q('txt').value)}</text>
-   <text x="${pos.small.x-5}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" class="letter">${esc(q('small').value)}</text>
-   <text x="80" y="165" text-anchor="middle" font-size="5">LAYER 1 — CUT</text>
- </g>
- <g transform="translate(170 0)">
-   <circle cx="80" cy="85" r="67.5" fill="#fff" stroke="#bbb" stroke-dasharray="2 2"/>
-   <text x="${pos.verse.x-5}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text>
-   <text x="80" y="165" text-anchor="middle" font-size="5">LAYER 2 — REFERENCE</text>
- </g>
- <g transform="translate(340 0)">
-   <circle cx="80" cy="85" r="67.5" fill="#fff" stroke="#bbb" stroke-dasharray="2 2"/>
-   ${artGroup(80,85)}
-   <text x="80" y="165" text-anchor="middle" font-size="5">LAYER 3 — IMAGE</text>
- </g>`;
+   <g id="MASTER_LEFT_BACK">
+     <circle cx="75" cy="75" r="74.9" fill="${q('cBack').value}" stroke="#ff0000" stroke-width=".25"/>
+     ${artGroup(75,75)}
+     <text x="${pos.verse.x-10}" y="${pos.verse.y}" text-anchor="middle"
+       font-family="${q('font3').value}" font-size="${q('vs').value}" fill="#000000">${esc(q('verse').value)}</text>
+   </g>
+   <g id="MASTER_RIGHT_FRONT" transform="translate(${rightX} 0)">
+     ${rightCut}
+   </g>`;
 }
  fitVisibleWords();
  attachDrag();

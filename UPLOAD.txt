@@ -1,0 +1,9 @@
+V33 EXACT SVG
+Replace these four files in the ROOT of the GitHub repository:
+index.html
+service-worker.js
+manifest.webmanifest
+icon.svg
+
+After deployment open the site with ?v=33 once.
+Use the 'Exact Laser Layout' tab to see the same side-by-side coordinate layout used by the SVG download.

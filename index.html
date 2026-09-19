@@ -161,13 +161,13 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V45 Exact Preview + Vector Text</button>
-<div class="note" style="margin-top:8px"><b>V45 true WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V45 removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates shifted only by the physical 10 mm sheet-layout origin. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V46 Exact Preview + Vector Text</button>
+<div class="note" style="margin-top:8px"><b>V46 true WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V46 removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>V45:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
+<p class="note"><b>V46:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
 </aside><main>
-<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V45</div>
+<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V46</div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
@@ -267,7 +267,7 @@ function artGroup(cx=75, cy=75){
    </g>
  </g>`;
 }
-let pos={main:{x:85,y:73},small:{x:85,y:102},verse:{x:85,y:113},art:{x:0,y:0}};
+let pos={main:{x:75,y:73},small:{x:75,y:102},verse:{x:75,y:133},art:{x:0,y:0}};
 function lettering(cx=85){return `<g class="letter"><text id="drag-main" class="draggable laser-word" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}">${esc(q('txt').value)}</text></g>`}
 function engraving(cx=85,cy=85){return `<g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g><g class="engrave"><text id="drag-small" class="draggable laser-word" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text><text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}">${esc(q('verse').value)}</text></g>`}
 function esc(s){return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
@@ -283,10 +283,7 @@ function fitTextToWidth(el,maxWidth=125){
    }
  }catch(e){}
 }
-function fitVisibleWords(){
- fitTextToWidth(q('svg').querySelector('#drag-main'),125);
- fitTextToWidth(q('svg').querySelector('#drag-small'),125);
-}
+function fitVisibleWords(){ /* V46: no secondary fitting; vectorizer is the single geometry source. */ }
 
 function ringOuterPath(cx=85, cy=85, r=75, preview=true){
  // One continuous outer cut path: circle -> left shoulder -> loop -> right shoulder -> circle.
@@ -322,7 +319,7 @@ let drawGeneration=0;
 function setMode(next){
  mode=next;
  const b=q('modeBadge');
- if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V45 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V45');
+ if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V46 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V46');
  const a=q('tabAssembled'), p=q('tabParts');
  if(a) a.style.fontWeight=mode==='assembled'?'800':'400';
  if(p) p.style.fontWeight=mode==='parts'?'800':'400';
@@ -332,32 +329,37 @@ async function draw(){
 const myGeneration=++drawGeneration;
 let s=q('svg');
 if(mode==='assembled') {
- s.setAttribute('viewBox',q('loopOn').checked?'0 -20 170 190':'0 0 170 170');
- // V45 WYSIWYG: visible wording/reference use the SAME traced vector geometry as laser export.
+ const extra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
+  s.setAttribute('viewBox',`0 -${extra} 150 ${150+extra}`);
+ // V46 WYSIWYG: visible wording/reference use the SAME traced vector geometry as laser export.
  const mainVec=await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x,pos.main.y,125,'engrave');
  const smallVec=await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x,pos.small.y,125,'engrave');
  const verseVec=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x,pos.verse.y,125,'engrave');
  if(myGeneration!==drawGeneration || mode!=='assembled') return;
  const recolor=(v,c)=>v.replaceAll('#000000',c).replaceAll('#000',c);
- s.innerHTML=`<circle cx="85" cy="85" r="75" fill="${q('cBack').value}" stroke="#e00000" stroke-width=".25"/>
- ${ringOuterPath(85,85,75,true)}
- <circle cx="85" cy="85" r="67.5" fill="#ffffff" stroke="#e00000" stroke-width=".25"/>
- <g style="color:${q('cArt').value}" stroke="${q('cArt').value}">${engraving(85,85)}</g>
+ s.innerHTML=`<circle cx="75" cy="75" r="74.9" fill="${q('cBack').value}" stroke="#e00000" stroke-width=".25"/>
+ ${ringOuterPath(75,75,74.9,true)}
+ <circle cx="75" cy="75" r="67.5" fill="#ffffff" stroke="#e00000" stroke-width=".25"/>
+ <g style="color:${q('cArt').value}" stroke="${q('cArt').value}">${artGroup(75,75)}</g>
  <g id="ASSEMBLED_EXACT_VECTORS">${recolor(mainVec,q('cMain').value)}${recolor(smallVec,q('cSmall').value)}${recolor(verseVec,q('cVerse').value)}</g>
  <!-- Invisible live-text drag handles preserve iPad dragging while visible geometry is export-exact. -->
- <g opacity="0.001" pointer-events="all">${lettering(85)}</g>`;
+ <g opacity="0.001" pointer-events="all">
+    <text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}">${esc(q('txt').value)}</text>
+    <text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text>
+    <text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}">${esc(q('verse').value)}</text>
+  </g>`;
  let ar=s.querySelector('#drag-art'); if(ar){ar.setAttribute('stroke',q('cArt').value);ar.setAttribute('color',q('cArt').value)}
 }
 else {
- // V45 EXACT LASER LAYOUT: render the ACTUAL laser-output geometry.
+ // V46 EXACT LASER LAYOUT: render the ACTUAL laser-output geometry.
  // No decorative fills and no live text. What is shown here is what is downloaded.
  const rightX=165;
  const extra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
  s.setAttribute('viewBox',`0 -${extra} 315 ${150+extra}`);
 
- const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x-10,pos.main.y-10,125,'cut'))
-   +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x-10,pos.small.y-10,125,'cut'));
- const versePath=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x-10,pos.verse.y-10,125,'engrave');
+ const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x,pos.main.y,125,'cut'))
+   +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x,pos.small.y,125,'cut'));
+ const versePath=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x,pos.verse.y,125,'engrave');
  const laserArt=await exportArtForLaser();
  if(myGeneration!==drawGeneration || mode!=='parts') return;
  const ring=(ringOuterPath(75,75,74.9,false)
@@ -507,11 +509,11 @@ function exportArt(cx=75){
  return artGroup(cx,75);
 }
 function exportVerse(cx=75){
- let vx=pos.verse.x-10;
+ let vx=pos.verse.x;
  return `<text x="${vx}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="none" stroke="#000">${esc(q('verse').value)}</text>`;
 }
 function exportCutWords(cx=75){
- let mx=pos.main.x-10, sx=pos.small.x-10;
+ let mx=pos.main.x, sx=pos.small.x;
  const mainFont=customMainFont||q('font').value;
  const smallFont=customSmallFont||q('font2').value;
  const mainText=esc(q('txt').value), smallText=esc(q('small').value);
@@ -724,22 +726,22 @@ async function buildSideBySideLaserSVG(){
    // No PNG freezing, no second font-size calculation, and no export-only repositioning.
    // Copy the ACTUAL rendered wording from Exact Laser Layout.
    // This preserves the same browser-resolved font, size, baseline and width-fit transform.
-   const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x-10,pos.main.y-10,125,'cut'))
-     +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x-10,pos.small.y-10,125,'cut'));
+   const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x,pos.main.y,125,'cut'))
+     +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x,pos.small.y,125,'cut'));
 
    const ring=(ringOuterPath(75,75,74.9,false)
      + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
      .replaceAll('#e00000','#ff0000');
 
-   const verse=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x-10,pos.verse.y-10,125,'engrave');
+   const verse=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x,pos.verse.y,125,'engrave');
 
    return `<?xml version="1.0" encoding="UTF-8"?>
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V45</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V46</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V45",
+       version:"V46",
        layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},
@@ -871,7 +873,7 @@ draw();
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
-    console.log("V45: old service worker and cached app files cleared.");
+    console.log("V46: old service worker and cached app files cleared.");
   } catch(e) {
     console.warn("V36 cache cleanup:", e);
   }

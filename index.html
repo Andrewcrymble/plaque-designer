@@ -161,8 +161,8 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V35 Frozen Text</button>
-<div class="note" style="margin-top:8px"><b>V35 frozen-text:</b> tap <b>Exact Laser Layout</b> before downloading. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V36 Frozen Text</button>
+<div class="note" style="margin-top:8px"><b>V36 frozen-text:</b> tap <b>Exact Laser Layout</b> before downloading. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
 <p class="note"><b>Important:</b> browser fonts depend on fonts installed on your computer. For guaranteed identical lettering on another computer, text should eventually be converted to vector paths.</p>
@@ -609,9 +609,9 @@ async function buildSideBySideLaserSVG(){
   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
        width="315mm" height="${150+loopExtra}mm"
        viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-    <title>${safeFileName(q('txt').value)} - Laser Plaque V35</title>
+    <title>${safeFileName(q('txt').value)} - Laser Plaque V36</title>
     <metadata id="LASER_SETTINGS">${JSON.stringify({
-      version:"V35",
+      version:"V36",
       text_export:"browser-rendered frozen PNG to prevent font substitution",
       cut:{speed_mm_min:cs,power_percent:cp},
       image_engrave:{speed_mm_min:is,power_percent:ip},
@@ -715,4 +715,23 @@ async function downloadAllLayersSeparately(){
  if(st) st.textContent='Created 3 aligned files: CUT, REFERENCE and IMAGE. If Chrome asks, allow multiple downloads for this file.';
 }
 draw();
-</script></body></html>
+</script>
+<script>
+(async function(){
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) await reg.unregister();
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    console.log("V36: old service worker and cached app files cleared.");
+  } catch(e) {
+    console.warn("V36 cache cleanup:", e);
+  }
+})();
+</script>
+
+</body></html>

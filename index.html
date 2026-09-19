@@ -161,11 +161,11 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V41 Fixed Vector Text</button>
-<div class="note" style="margin-top:8px"><b>V41 fixed vector text:</b> wording and reference are rendered in this browser, traced into real SVG paths, and exported without live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V42 Exact Preview + Vector Text</button>
+<div class="note" style="margin-top:8px"><b>V42 exact laser preview:</b> wording and reference are rendered in this browser, traced into real SVG paths, and exported without live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>V41:</b> exported lettering is converted to vector outlines in the browser before download. The receiving computer does not need the font installed.</p>
+<p class="note"><b>V42:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
 </aside><main>
 <div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">Exact Laser Layout</button></div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
@@ -318,7 +318,7 @@ function loopSVG(cx=85, preview=true){
  // Kept for compatibility: now returns the integrated ring perimeter, not a separate tab.
  return ringOuterPath(cx, preview?85:75, 75, preview);
 }
-function draw(){
+async function draw(){
 let s=q('svg');
 if(mode==='assembled') {
  s.setAttribute('viewBox',q('loopOn').checked?'0 -20 170 190':'0 0 170 170');
@@ -333,25 +333,29 @@ if(mode==='assembled') {
  let ar=s.querySelector('#drag-art'); if(ar){ar.setAttribute('stroke',q('cArt').value);ar.setAttribute('color',q('cArt').value)}
 }
 else {
- // EXACT LASER LAYOUT PREVIEW.
- // These are the same 315 mm coordinates used by the downloaded SVG.
+ // V42 EXACT LASER LAYOUT: render the ACTUAL laser-output geometry.
+ // No decorative fills and no live text. What is shown here is what is downloaded.
  const rightX=165;
  const extra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
  s.setAttribute('viewBox',`0 -${extra} 315 ${150+extra}`);
- const rightCut=(ringOuterPath(75,75,74.9,true)
-   + `<circle cx="75" cy="75" r="67.5" fill="#ffffff" stroke="#ff0000" stroke-width=".25"/>`
-   + `<text x="${pos.main.x-10}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text>
-      <text x="${pos.small.x-10}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text>`)
+
+ const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x-10,pos.main.y,125,'cut'))
+   +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x-10,pos.small.y,125,'cut'));
+ const versePath=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x-10,pos.verse.y,125,'engrave');
+ const laserArt=await exportArtForLaser();
+ const ring=(ringOuterPath(75,75,74.9,false)
+   + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
    .replaceAll('#e00000','#ff0000');
+
  s.innerHTML=`
-   <g id="MASTER_LEFT_BACK">
-     <circle cx="75" cy="75" r="74.9" fill="${q('cBack').value}" stroke="#ff0000" stroke-width=".25"/>
-     ${artGroup(75,75)}
-     <text x="${pos.verse.x-10}" y="${pos.verse.y}" text-anchor="middle"
-       font-family="${q('font3').value}" font-size="${q('vs').value}" fill="#000000">${esc(q('verse').value)}</text>
+   <g id="EXACT_LEFT_BACK">
+     <circle cx="75" cy="75" r="74.9" fill="none" stroke="#ff0000" stroke-width=".25"/>
+     <g id="EXACT_IMAGE_ENGRAVE">${laserArt}</g>
+     <g id="EXACT_REFERENCE_ENGRAVE">${versePath}</g>
    </g>
-   <g id="MASTER_RIGHT_FRONT" transform="translate(${rightX} 0)">
-     ${rightCut}
+   <g id="EXACT_RIGHT_FRONT" transform="translate(${rightX} 0)">
+     ${ring}
+     ${cutWords}
    </g>`;
 }
  fitVisibleWords();
@@ -716,9 +720,9 @@ async function buildSideBySideLaserSVG(){
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V41</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V42</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V41",
+       version:"V42",
        layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},

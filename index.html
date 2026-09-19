@@ -161,11 +161,11 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V38 Exact Match</button>
-<div class="note" style="margin-top:8px"><b>V38 exact-match:</b> the downloaded wording now uses the same browser-resolved font, size and baseline position as the Exact Laser Layout. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V39 Exact Match</button>
+<div class="note" style="margin-top:8px"><b>V39 exact-match:</b> the downloaded wording now uses the same browser-resolved font, size and baseline position as the Exact Laser Layout. The left and right pieces use the same 315 mm coordinate system as the downloaded SVG: LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>Important:</b> V38 exports the exact same SVG text objects, font sizes and X/Y positions shown in Exact Laser Layout. The receiving computer still needs the same font installed; true font-to-path conversion requires the actual font file.</p>
+<p class="note"><b>Important:</b> V39 exports the exact same SVG text objects, font sizes and X/Y positions shown in Exact Laser Layout. The receiving computer still needs the same font installed; true font-to-path conversion requires the actual font file.</p>
 </aside><main>
 <div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">Exact Laser Layout</button></div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
@@ -561,6 +561,35 @@ async function freezeTextToPNG(text, fontFamily, fontSizeMm, fill, maxWidthMm=nu
   };
 }
 
+
+function exactRenderedCutWords(){
+  // Temporarily render the exact laser layout so we can copy the browser-resolved
+  // SVG text attributes, including the fitVisibleWords() horizontal scaling transform.
+  const oldMode=mode;
+  mode='parts';
+  draw();
+  const root=q('svg');
+  const m=root.querySelector('#drag-main');
+  const sm=root.querySelector('#drag-small');
+
+  function cloneForCut(el){
+    if(!el) return '';
+    const c=el.cloneNode(true);
+    c.removeAttribute('id');
+    c.removeAttribute('class');
+    c.removeAttribute('data-key');
+    c.setAttribute('fill','none');
+    c.setAttribute('stroke','#ff0000');
+    c.setAttribute('stroke-width','.25');
+    return new XMLSerializer().serializeToString(c);
+  }
+
+  const out=cloneForCut(m)+cloneForCut(sm);
+  mode=oldMode;
+  draw();
+  return out;
+}
+
 async function buildSideBySideLaserSVG(){
    const laserArt=await exportArtForLaser();
    const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
@@ -571,10 +600,9 @@ async function buildSideBySideLaserSVG(){
 
    // IMPORTANT: these are the exact same text objects/coordinates used in Exact Laser Layout.
    // No PNG freezing, no second font-size calculation, and no export-only repositioning.
-   const cutWords=exportCutWords(75)
-      .replaceAll('#1261d6','#ff0000')
-      .replaceAll('#0066dd','#ff0000')
-      .replaceAll('#06d','#ff0000');
+   // Copy the ACTUAL rendered wording from Exact Laser Layout.
+   // This preserves the same browser-resolved font, size, baseline and width-fit transform.
+   const cutWords=exactRenderedCutWords();
 
    const ring=(ringOuterPath(75,75,74.9,false)
      + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
@@ -586,10 +614,10 @@ async function buildSideBySideLaserSVG(){
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V38</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V39</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V38",
-       layout:"exact same SVG text, font-size and coordinates as preview",
+       version:"V39",
+       layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},
        line_engrave:{speed_mm_min:ls,power_percent:lp}

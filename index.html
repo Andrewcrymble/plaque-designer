@@ -25,7 +25,12 @@ button{margin-top:10px;cursor:pointer}.tabs{display:flex;gap:5px;margin-bottom:1
  .preview svg{width:96vw;max-height:42vh}
  aside{padding:12px}
 }
-</style></head><body><div class="app"><aside>
+</style>
+<script type="module">
+  import { PublicClientApplication } from "https://cdn.jsdelivr.net/npm/@azure/msal-browser@5/+esm";
+  window.MSALPublicClientApplication = PublicClientApplication;
+  window.dispatchEvent(new Event('msal-ready'));
+</script></head><body><div class="app"><aside>
 <h2>2-Part Side-by-Side Laser Plaque Designer</h2><div class='note'><b>Independent text controls:</b> the raised wording, small wording and verse can each use a different font and letter size.</div>
 <div class="note"><b>iPad compatible:</b> In Assembled Preview, drag the main text, small text, verse and imported artwork directly with your finger, Apple Pencil or mouse.<br><br>Laser output is one side-by-side SVG: the LEFT back plate contains its outside cut plus image/reference engraving; the RIGHT front sheet contains the integrated ring/tab/hole, inner-circle cut and both wording cuts.</div>
 <label>Main wording</label><input id="txt" value="Be Still">
@@ -161,13 +166,26 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V46 Exact Preview + Vector Text</button>
-<div class="note" style="margin-top:8px"><b>V46 true WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V46 removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V47 Exact Preview + OneDrive</button>
+<div style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
+  <button type="button" id="oneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px">☁️ Save Laser Job to OneDrive</button>
+  <div id="oneDriveStatus" class="note" style="margin-top:7px"><b>OneDrive destination:</b> your selected Laser Jobs folder. First use requires Microsoft sign-in and a one-time app Client ID.</div>
+  <details style="margin-top:8px">
+    <summary style="cursor:pointer;font-size:13px;font-weight:bold">OneDrive setup</summary>
+    <label>Microsoft Application (Client) ID</label>
+    <input id="msClientId" placeholder="Paste Client ID from Microsoft Entra app registration">
+    <label>Redirect URL to register in Microsoft Entra</label>
+    <input id="msRedirectUri" readonly>
+    <button type="button" onclick="saveMicrosoftSetup()">Save Microsoft setup on this device</button>
+    <div class="note">The Client ID is not a password or secret. Do not put a client secret in this page. Register this page as a <b>Single-page application (SPA)</b> and grant delegated <b>Files.ReadWrite</b> permission.</div>
+  </details>
+</div>
+<div class="note" style="margin-top:8px"><b>V47 true WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>V46:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
+<p class="note"><b>V47:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
 </aside><main>
-<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V46</div>
+<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V47</div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
@@ -319,7 +337,7 @@ let drawGeneration=0;
 function setMode(next){
  mode=next;
  const b=q('modeBadge');
- if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V46 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V46');
+ if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V47 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V47');
  const a=q('tabAssembled'), p=q('tabParts');
  if(a) a.style.fontWeight=mode==='assembled'?'800':'400';
  if(p) p.style.fontWeight=mode==='parts'?'800':'400';
@@ -739,9 +757,9 @@ async function buildSideBySideLaserSVG(){
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V46</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V47</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V46",
+       version:"V47",
        layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},
@@ -852,6 +870,146 @@ async function downloadPart(which){
    alert('Could not create the SVG download: '+err.message);
  }
 }
+
+// ===== V47 OneDrive / SharePoint direct-save integration =====
+// The shared folder URL is intentionally stored without credentials. Microsoft Graph
+// resolves it after the user signs in with delegated Files.ReadWrite permission.
+const ONE_DRIVE_SHARED_FOLDER_URL = 'https://davidcrymbleandsons967-my.sharepoint.com/:f:/g/personal/andrew_crymbleandsons_com/IgCnfCPI0EUuRrPZGkAI7iQGAbW_RueyIqypc-RfTbKk4-s?e=fXc08A';
+let msalApp = null;
+
+function initOneDriveUI(){
+  const cid=q('msClientId'), red=q('msRedirectUri');
+  if(red) red.value=window.location.origin==='null' ? window.location.href.split('#')[0].split('?')[0] : window.location.origin+window.location.pathname;
+  if(cid) cid.value=localStorage.getItem('plaque_ms_client_id')||'';
+}
+
+function saveMicrosoftSetup(){
+  const cid=(q('msClientId')?.value||'').trim();
+  if(!cid){ alert('Paste your Microsoft Application (Client) ID first.'); return; }
+  localStorage.setItem('plaque_ms_client_id',cid);
+  msalApp=null;
+  q('oneDriveStatus').innerHTML='<b>Microsoft setup saved.</b> Press Save Laser Job to OneDrive.';
+}
+
+function encodeSharingUrl(url){
+  // Microsoft Graph sharing URL format: u! + unpadded base64url(UTF-8 URL)
+  const bytes=new TextEncoder().encode(url);
+  let binary='';
+  for(const b of bytes) binary+=String.fromCharCode(b);
+  return 'u!'+btoa(binary).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_');
+}
+
+async function getMsalApp(){
+  const clientId=(q('msClientId')?.value||localStorage.getItem('plaque_ms_client_id')||'').trim();
+  if(!clientId) throw new Error('Microsoft Client ID is not set. Open OneDrive setup and paste the Application (Client) ID.');
+  if(!window.MSALPublicClientApplication) throw new Error('Microsoft sign-in library is still loading. Wait a moment and try again.');
+  if(msalApp) return msalApp;
+  const redirectUri=q('msRedirectUri').value;
+  msalApp=new window.MSALPublicClientApplication({
+    auth:{clientId,authority:'https://login.microsoftonline.com/organizations',redirectUri},
+    cache:{cacheLocation:'localStorage'}
+  });
+  await msalApp.initialize();
+  return msalApp;
+}
+
+async function getGraphToken(){
+  const app=await getMsalApp();
+  const scopes=['Files.ReadWrite','User.Read'];
+  let account=app.getAllAccounts()[0];
+  if(!account){
+    const login=await app.loginPopup({scopes,prompt:'select_account'});
+    account=login.account;
+  }
+  try{
+    const silent=await app.acquireTokenSilent({scopes,account});
+    return silent.accessToken;
+  }catch(e){
+    const interactive=await app.acquireTokenPopup({scopes,account});
+    return interactive.accessToken;
+  }
+}
+
+async function graphJson(url, token, options={}){
+  const headers=new Headers(options.headers||{});
+  headers.set('Authorization','Bearer '+token);
+  if(options.body && typeof options.body==='string' && !headers.has('Content-Type')) headers.set('Content-Type','application/json');
+  const r=await fetch(url,{...options,headers});
+  if(!r.ok){
+    let detail=''; try{ detail=(await r.json())?.error?.message||''; }catch(e){ detail=await r.text(); }
+    throw new Error(`Microsoft Graph ${r.status}: ${detail||r.statusText}`);
+  }
+  if(r.status===204) return null;
+  return await r.json();
+}
+
+function laserInstructionsText(jobName){
+  return `LASER JOB — ${jobName}\n\n`+
+    `Created: ${new Date().toLocaleString()}\n`+
+    `Material thickness: 2 mm\n`+
+    `Finished plaque diameter: 150 mm\n`+
+    `Front ring inner opening: 135 mm\n`+
+    `Layout: LEFT = back plate; RIGHT = front ring + wording\n\n`+
+    `COLOUR RULE\nRED = CUT\nBLACK = ENGRAVE\n\n`+
+    `CUT: ${q('cutSpeed').value} mm/min @ ${q('cutPower').value}% power\n`+
+    `IMAGE ENGRAVE: ${q('imageSpeed').value} mm/min @ ${q('imagePower').value}% power\n`+
+    `LINE / REFERENCE ENGRAVE: ${q('lineSpeed').value} mm/min @ ${q('linePower').value}% power\n\n`+
+    `Main wording: ${q('txt').value}\n`+
+    `Small wording: ${q('small').value}\n`+
+    `Verse/reference: ${q('verse').value}\n`+
+    `Hanging loop: ${q('loopOn').checked?'ON':'OFF'}\n\n`+
+    `Generated by Laser Plaque Designer V47.\n`;
+}
+
+async function putTextFile(driveId, folderId, filename, content, mime, token){
+  const encoded=encodeURIComponent(filename);
+  const url=`https://graph.microsoft.com/v1.0/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(folderId)}:/${encoded}:/content`;
+  const r=await fetch(url,{method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':mime},body:content});
+  if(!r.ok){
+    let detail=''; try{detail=(await r.json())?.error?.message||'';}catch(e){detail=await r.text();}
+    throw new Error(`Upload failed (${r.status}): ${detail||r.statusText}`);
+  }
+  return await r.json();
+}
+
+async function saveLaserJobToOneDrive(){
+  const st=q('oneDriveStatus'), btn=q('oneDriveSaveBtn');
+  try{
+    btn.disabled=true; st.textContent='Signing in to Microsoft…';
+    const token=await getGraphToken();
+    st.textContent='Finding your OneDrive Laser Jobs folder…';
+    const shareId=encodeSharingUrl(ONE_DRIVE_SHARED_FOLDER_URL);
+    const shared=await graphJson(`https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem`,token);
+    const driveId=shared?.parentReference?.driveId;
+    const rootFolderId=shared?.id;
+    if(!driveId||!rootFolderId||!shared.folder) throw new Error('The saved OneDrive link did not resolve to a folder.');
+
+    const base=safeFileName(q('txt').value);
+    const stamp=new Date().toISOString().slice(0,10);
+    const requestedFolder=`${base} - ${stamp}`;
+    st.textContent='Creating job folder…';
+    const child=await graphJson(`https://graph.microsoft.com/v1.0/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(rootFolderId)}/children`,token,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:requestedFolder,folder:{},'@microsoft.graph.conflictBehavior':'rename'})
+    });
+    const jobFolderId=child.id;
+    const actualFolderName=child.name||requestedFolder;
+
+    st.textContent='Generating laser SVG…';
+    const svg=await buildSideBySideLaserSVG();
+    const instructions=laserInstructionsText(base);
+    st.textContent='Uploading SVG and laser instructions…';
+    await putTextFile(driveId,jobFolderId,base+'.svg',svg,'image/svg+xml',token);
+    await putTextFile(driveId,jobFolderId,'LASER INSTRUCTIONS.txt',instructions,'text/plain;charset=utf-8',token);
+    st.innerHTML=`<b>Saved to OneDrive ✓</b><br>${esc(actualFolderName)}<br>${esc(base)}.svg + LASER INSTRUCTIONS.txt`;
+  }catch(err){
+    console.error(err);
+    st.innerHTML='<b>OneDrive save failed:</b> '+esc(err.message||String(err));
+  }finally{btn.disabled=false;}
+}
+window.addEventListener('DOMContentLoaded',initOneDriveUI);
+// ===== end OneDrive integration =====
+
 async function downloadAllLayersSeparately(){
  // Separate downloads preserve three independently selectable laser layers.
  await downloadPart('cut');
@@ -873,7 +1031,7 @@ draw();
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
-    console.log("V46: old service worker and cached app files cleared.");
+    console.log("V47: old service worker and cached app files cleared.");
   } catch(e) {
     console.warn("V36 cache cleanup:", e);
   }

@@ -166,7 +166,7 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V48 Exact Preview + OneDrive</button>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V49 Exact Preview + Laser Jobs</button>
 <div style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
   <button type="button" id="oneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px">☁️ Save Laser Job to OneDrive</button>
   <div id="oneDriveStatus" class="note" style="margin-top:7px"><b>OneDrive destination:</b> your selected Laser Jobs folder. First use opens Microsoft sign-in in this tab, then returns here automatically and finishes the save.</div>
@@ -180,12 +180,12 @@ Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 
     <div class="note">The Client ID is not a password or secret. Do not put a client secret in this page. Register this page as a <b>Single-page application (SPA)</b> and grant delegated <b>Files.ReadWrite</b> permission.</div>
   </details>
 </div>
-<div class="note" style="margin-top:8px"><b>V48:</b> V47 laser geometry preserved exactly; OneDrive sign-in changed to iPad-safe Microsoft redirect authentication. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<div class="note" style="margin-top:8px"><b>V49:</b> V47 laser geometry preserved exactly; OneDrive sign-in uses iPad-safe Microsoft redirect authentication and saves directly to Business → Laser engraving → Laser Jobs. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
 <p class="note"><b>V49:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
 </aside><main>
-<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V48</div>
+<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V49</div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
@@ -337,7 +337,7 @@ let drawGeneration=0;
 function setMode(next){
  mode=next;
  const b=q('modeBadge');
- if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V48 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V48');
+ if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V49 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V49');
  const a=q('tabAssembled'), p=q('tabParts');
  if(a) a.style.fontWeight=mode==='assembled'?'800':'400';
  if(p) p.style.fontWeight=mode==='parts'?'800':'400';
@@ -757,9 +757,9 @@ async function buildSideBySideLaserSVG(){
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V47</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V49</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V47",
+       version:"V49",
        layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},

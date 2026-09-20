@@ -166,7 +166,7 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V49 Exact Preview + Laser Jobs</button>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V51 Exact Preview + Saved Jobs</button>
 <div style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
   <button type="button" id="oneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px">☁️ Save Laser Job to OneDrive</button>
   <div id="oneDriveStatus" class="note" style="margin-top:7px"><b>OneDrive destination:</b> your selected Laser Jobs folder. First use opens Microsoft sign-in in this tab, then returns here automatically and finishes the save.</div>
@@ -180,12 +180,29 @@ Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 
     <div class="note">The Client ID is not a password or secret. Do not put a client secret in this page. Register this page as a <b>Single-page application (SPA)</b> and grant delegated <b>Files.ReadWrite</b> permission.</div>
   </details>
 </div>
-<div class="note" style="margin-top:8px"><b>V49:</b> V47 laser geometry preserved exactly; OneDrive sign-in uses iPad-safe Microsoft redirect authentication and saves directly to Business → Laser engraving → Laser Jobs. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+
+<div id="savedJobsPanel" style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#fff">
+  <div style="font-size:16px;font-weight:800;margin-bottom:4px">☁️ Saved Laser Jobs</div>
+  <div class="note" style="margin-bottom:8px">Automatically lists plaque jobs saved in <b>Business → Laser engraving → Laser Jobs</b>.</div>
+  <div class="row">
+    <button type="button" id="refreshJobsBtn" onclick="refreshSavedLaserJobs(true)">↻ Refresh saved jobs</button>
+    <button type="button" onclick="openLaserJobsFolder()">📁 Open Laser Jobs folder</button>
+  </div>
+  <div id="savedJobsStatus" class="note" style="margin-top:8px">Sign in to Microsoft using the OneDrive save button to load your saved jobs.</div>
+  <div id="savedJobsList" style="margin-top:8px"></div>
+  <div class="note" style="margin-top:10px;text-align:center"><b>Laser Plaque Designer • V51</b></div>
+</div>
+
+<div class="note" style="margin-top:8px"><b>V51:</b> V47 laser geometry preserved exactly; OneDrive sign-in uses iPad-safe Microsoft redirect authentication and saves directly to Business → Laser engraving → Laser Jobs. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>V49:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
+<p class="note"><b>V51:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
 </aside><main>
-<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V49</div>
+<div id="topOneDriveBar" style="margin:0 0 10px;padding:10px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
+  <button type="button" id="topOneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px;margin-top:0">☁️ Save Laser Job to OneDrive</button>
+  <div id="topOneDriveStatus" class="note" style="margin-top:5px;text-align:center"><b>OneDrive:</b> Business → Laser engraving → Laser Jobs</div>
+</div>
+<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V51</div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
@@ -337,7 +354,7 @@ let drawGeneration=0;
 function setMode(next){
  mode=next;
  const b=q('modeBadge');
- if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V49 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V49');
+ if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V51 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V51');
  const a=q('tabAssembled'), p=q('tabParts');
  if(a) a.style.fontWeight=mode==='assembled'?'800':'400';
  if(p) p.style.fontWeight=mode==='parts'?'800':'400';
@@ -757,9 +774,9 @@ async function buildSideBySideLaserSVG(){
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V49</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V51</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V49",
+       version:"V51",
        layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},
@@ -871,13 +888,14 @@ async function downloadPart(which){
  }
 }
 
-// ===== V49 OneDrive direct-save integration — fixed Laser Jobs folder =====
+// ===== V51 OneDrive direct-save + Saved Laser Jobs browser =====
 // Uses MSAL redirect authentication (not popups), which is more reliable on iPad/iPhone.
 // The shared folder URL contains no credentials. Microsoft Graph resolves it only after
 // the signed-in user grants delegated Files.ReadWrite permission.
 const LASER_JOBS_DRIVE_ID = 'b!DORod8cAwEeqnxaZpfV3GhYZDQSigd5Di6dztrjfNifNC-SeJPSDTKAHbBS-wTsv';
 const LASER_JOBS_FOLDER_ID = '01TO5MCZ5BESFBRJ6JNNBLKQFYNURMBP7F';
 const LASER_JOBS_FOLDER_PATH = 'Business / Laser engraving / Laser Jobs';
+const LASER_JOBS_WEB_URL = 'https://davidcrymbleandsons967-my.sharepoint.com/personal/andrew_crymbleandsons_com/Documents/Business/Laser%20engraving/Laser%20Jobs';
 const PLAQUE_TENANT_ID = 'f8e29d93-70ca-4c92-94f8-1a5d51ea728f';
 const PLAQUE_DEFAULT_CLIENT_ID = '56f4153d-6f64-4bc4-a9db-0b5d97cb7587';
 const GRAPH_SCOPES = ['Files.ReadWrite','User.Read'];
@@ -996,7 +1014,7 @@ function laserInstructionsText(jobName){
     `Small wording: ${q('small').value}\n`+
     `Verse/reference: ${q('verse').value}\n`+
     `Hanging loop: ${q('loopOn').checked?'ON':'OFF'}\n\n`+
-    `Generated by Laser Plaque Designer V49 (V47 geometry + iPad redirect + fixed Laser Jobs destination).\n`;
+    `Generated by Laser Plaque Designer V51 (V47 geometry + iPad redirect + fixed Laser Jobs destination + saved jobs browser).\n`;
 }
 
 async function putTextFile(driveId, folderId, filename, content, mime, token){
@@ -1010,17 +1028,90 @@ async function putTextFile(driveId, folderId, filename, content, mime, token){
   return await r.json();
 }
 
-async function saveLaserJobToOneDrive(){
-  const st=q('oneDriveStatus'), btn=q('oneDriveSaveBtn');
+function openLaserJobsFolder(){
+  window.open(LASER_JOBS_WEB_URL,'_blank','noopener');
+}
+
+function formatJobDate(iso,name=''){
+  // Prefer the date already included in the job folder name; otherwise use Graph metadata.
+  const m=String(name).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return `${m[3]}/${m[2]}/${m[1]}`;
+  if(!iso) return '';
+  try{return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return '';}
+}
+
+function renderSavedLaserJobs(items){
+  const list=q('savedJobsList'), status=q('savedJobsStatus');
+  if(!list||!status) return;
+  const folders=(items||[]).filter(i=>i.folder).sort((a,b)=>
+    String(b.createdDateTime||b.lastModifiedDateTime||'').localeCompare(String(a.createdDateTime||a.lastModifiedDateTime||''))
+  );
+  if(!folders.length){
+    list.innerHTML='';
+    status.textContent='No saved laser jobs yet.';
+    return;
+  }
+  status.innerHTML=`<b>${folders.length} saved job${folders.length===1?'':'s'}</b> — newest first.`;
+  list.innerHTML=folders.map(item=>{
+    const name=esc(item.name||'Laser Job');
+    const date=esc(formatJobDate(item.createdDateTime||item.lastModifiedDateTime,item.name));
+    const url=String(item.webUrl||LASER_JOBS_WEB_URL).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    const count=item.folder?.childCount;
+    const files=Number.isFinite(count)?`${count} file${count===1?'':'s'}`:'';
+    return `<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid #ddd">
+      <div><b>${name}</b><div class="note">${date}${date&&files?' • ':''}${files}</div></div>
+      <a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 12px;border-radius:6px;background:#0f6cbd;color:white;text-decoration:none;font-size:13px;font-weight:bold">Open</a>
+    </div>`;
+  }).join('');
+}
+
+async function refreshSavedLaserJobs(interactive=false){
+  const status=q('savedJobsStatus'), btn=q('refreshJobsBtn');
   try{
-    btn.disabled=true;
+    if(btn) btn.disabled=true;
+    if(status) status.textContent='Loading saved laser jobs…';
+    const app=await getMsalApp();
+    await handleMsalRedirectOnce();
+    const account=app.getActiveAccount()||app.getAllAccounts()[0];
+    if(!account){
+      if(status) status.textContent='Microsoft is not signed in yet. Use Save Laser Job to OneDrive first.';
+      return;
+    }
+    let token;
+    try{
+      token=(await app.acquireTokenSilent({scopes:GRAPH_SCOPES,account})).accessToken;
+    }catch(e){
+      if(!interactive){
+        if(status) status.textContent='Tap Refresh saved jobs to reconnect to Microsoft.';
+        return;
+      }
+      localStorage.setItem(PENDING_SAVE_KEY,'refresh_jobs');
+      if(status) status.textContent='Microsoft needs to confirm access…';
+      await app.acquireTokenRedirect({scopes:GRAPH_SCOPES,account});
+      return;
+    }
+    const url=`https://graph.microsoft.com/v1.0/drives/${encodeURIComponent(LASER_JOBS_DRIVE_ID)}/items/${encodeURIComponent(LASER_JOBS_FOLDER_ID)}/children?$select=id,name,webUrl,folder,createdDateTime,lastModifiedDateTime&$top=200`;
+    const data=await graphJson(url,token);
+    renderSavedLaserJobs(data?.value||[]);
+  }catch(err){
+    console.error('Could not load saved jobs',err);
+    if(status) status.innerHTML='<b>Could not load saved jobs:</b> '+esc(err.message||String(err));
+  }finally{
+    if(btn) btn.disabled=false;
+  }
+}
+
+async function saveLaserJobToOneDrive(){
+  const st=q('oneDriveStatus'), btn=q('oneDriveSaveBtn'), topBtn=q('topOneDriveSaveBtn');
+  try{
+    btn.disabled=true; if(topBtn) topBtn.disabled=true;
     localStorage.setItem(PENDING_SAVE_KEY,'1');
     st.textContent='Connecting to Microsoft…';
     const token=await getGraphToken();
     if(!token) return; // redirect has started
 
     st.textContent='Opening Business / Laser engraving / Laser Jobs…';
-    // V49 uses the exact OneDrive for Business drive + folder IDs for the
+    // V51 uses the exact OneDrive for Business drive + folder IDs for the
     // permanent Laser Jobs folder. No anonymous sharing-link resolution is needed.
     const driveId=LASER_JOBS_DRIVE_ID;
     const rootFolderId=LASER_JOBS_FOLDER_ID;
@@ -1044,11 +1135,12 @@ async function saveLaserJobToOneDrive(){
     await putTextFile(driveId,jobFolderId,'LASER INSTRUCTIONS.txt',instructions,'text/plain;charset=utf-8',token);
     localStorage.removeItem(PENDING_SAVE_KEY);
     st.innerHTML=`<b>Saved to OneDrive ✓</b><br>${esc(LASER_JOBS_FOLDER_PATH)} / ${esc(actualFolderName)}<br>${esc(base)}.svg + LASER INSTRUCTIONS.txt`;
+    await refreshSavedLaserJobs(false);
   }catch(err){
     console.error(err);
     localStorage.removeItem(PENDING_SAVE_KEY);
     st.innerHTML='<b>OneDrive save failed:</b> '+esc(err.message||String(err));
-  }finally{btn.disabled=false;}
+  }finally{btn.disabled=false; if(topBtn) topBtn.disabled=false;}
 }
 
 async function bootstrapOneDriveRedirect(){
@@ -1060,12 +1152,18 @@ async function bootstrapOneDriveRedirect(){
       await handleMsalRedirectOnce();
       const app=await getMsalApp();
       const account=app.getActiveAccount()||app.getAllAccounts()[0];
-      if(account && localStorage.getItem(PENDING_SAVE_KEY)==='1'){
+      const pending=localStorage.getItem(PENDING_SAVE_KEY);
+      if(account && pending==='1'){
         q('oneDriveStatus').innerHTML='<b>Microsoft sign-in complete.</b> Finishing your OneDrive save…';
         // Let the restored page finish drawing before SVG generation/upload.
         setTimeout(()=>saveLaserJobToOneDrive(),250);
+      } else if(account && pending==='refresh_jobs'){
+        localStorage.removeItem(PENDING_SAVE_KEY);
+        q('oneDriveStatus').innerHTML='<b>Microsoft connected ✓</b><br>Press Save Laser Job to OneDrive when ready.';
+        setTimeout(()=>refreshSavedLaserJobs(false),250);
       } else if(account){
         q('oneDriveStatus').innerHTML='<b>Microsoft connected ✓</b><br>Press Save Laser Job to OneDrive when ready.';
+        setTimeout(()=>refreshSavedLaserJobs(false),150);
       }
     }catch(err){
       console.error('Microsoft redirect handling failed',err);
@@ -1078,7 +1176,16 @@ async function bootstrapOneDriveRedirect(){
 
 window.addEventListener('DOMContentLoaded',()=>{
   initOneDriveUI();
-  bootstrapOneDriveRedirect();
+  // V51: mirror the detailed OneDrive status beside the always-visible top save button.
+(function syncTopOneDriveStatus(){
+  const source=q('oneDriveStatus'), target=q('topOneDriveStatus');
+  if(!source||!target) return;
+  const sync=()=>{ target.innerHTML=source.innerHTML; };
+  sync();
+  new MutationObserver(sync).observe(source,{childList:true,subtree:true,characterData:true});
+})();
+
+bootstrapOneDriveRedirect();
 });
 window.addEventListener('msal-ready',bootstrapOneDriveRedirect);
 // ===== end OneDrive integration =====

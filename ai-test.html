@@ -1,0 +1,719 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Master Laser Designer - Obvious Templates</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#eee;color:#222}.app{display:grid;grid-template-columns:360px 1fr;min-height:100vh}
+aside{background:#fff;padding:18px;overflow:auto;box-shadow:2px 0 10px #aaa}main{padding:18px}
+h2{margin-top:0}label{font-size:13px;font-weight:bold;display:block;margin-top:10px}
+input,select,button{width:100%;box-sizing:border-box;padding:7px;margin-top:3px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{margin-top:10px;cursor:pointer}.tabs{display:flex;gap:5px;margin-bottom:12px}.tabs button{margin:0}
+.preview{display:flex;justify-content:center}.preview svg{width:min(72vh,72vw);background:#fff;box-shadow:0 2px 12px #aaa}
+.note{font-size:12px;color:#666}.cut{stroke:#e00000;fill:none}.engrave{stroke:#111;fill:none}.letter{stroke:#1261d6;fill:none}.draggable{cursor:move}.selected{filter:drop-shadow(0 0 1px #000)}
+
+.templateBox{border:3px solid #1769aa;background:#f4faff;border-radius:10px;padding:12px;margin:14px 0 18px;box-shadow:0 2px 8px #bbb}
+.templateTitle{font-size:19px;font-weight:800;color:#0d4f83;margin-bottom:5px}.templateHelp{font-size:13px;margin-bottom:10px}
+.shapeGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.shapeGrid button{height:66px;margin:0;background:white;border:2px solid #b9cddd;border-radius:8px;font-size:27px;padding:4px;color:#222}.shapeGrid button span{display:block;font-size:11px;font-weight:700;margin-top:2px}.shapeGrid button.active{border:3px solid #e00000;background:#fff3f3;color:#b00000}
+.templateSelected{margin-top:10px;padding:9px;background:#1769aa;color:white;text-align:center;border-radius:6px;font-size:13px;letter-spacing:.3px}
+
+/* V35 compact workspace */
+aside{width:auto} .app{grid-template-columns:410px 1fr}
+.compactIntro{background:#16202a;color:white;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.compactIntro b{font-size:16px}.compactIntro .note{color:#dfe8ef;margin-top:3px}
+details.controlSection{background:#fff;border:1px solid #d5dce3;border-radius:9px;margin:8px 0;overflow:hidden}
+details.controlSection>summary{cursor:pointer;padding:11px 12px;font-weight:800;background:#f5f7f9;list-style:none;user-select:none}
+details.controlSection>summary::-webkit-details-marker{display:none}
+details.controlSection>summary:after{content:'＋';float:right;font-size:18px;line-height:14px}
+details.controlSection[open]>summary:after{content:'−'}
+details.controlSection>.sectionBody{padding:0 12px 12px}
+.quickBar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 12px}.quickBar button{margin:0}
+.templateBox{margin-top:8px}.shapeGrid{grid-template-columns:repeat(5,1fr)}.shapeGrid button{height:54px;font-size:22px}.shapeGrid button span{font-size:9px}
+@media(max-width:900px){.app{display:flex}.shapeGrid{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:600px){.shapeGrid{grid-template-columns:repeat(3,1fr)}}
+
+.ai-card{border:1px solid #c9b7ff;background:linear-gradient(180deg,#faf8ff,#f5f9ff);border-radius:12px;padding:12px;margin:10px 0}.ai-card h3{margin:0 0 4px}.ai-result{margin-top:10px;padding:10px;background:white;border:1px solid #ddd;border-radius:10px}.ai-result .idea-title{font-weight:800;font-size:16px}.ai-chip{display:inline-block;padding:3px 7px;margin:3px 3px 0 0;border-radius:999px;background:#eee;font-size:11px}.ai-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.ai-actions button{margin-top:7px}.ai-trend{font-size:12px;color:#555;margin-top:6px}
+</style>
+<style>
+#realAiBox{margin:12px 0;padding:12px;border:2px solid #6f42c1;border-radius:10px;background:#faf7ff}
+#realAiBox .airow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#realAiResult{white-space:pre-wrap;font-size:13px;background:white;border:1px solid #ddd;border-radius:8px;padding:10px;margin-top:8px;display:none}
+</style>
+</head><body><div class="app"><aside><div class="compactIntro"><b>Laser Plaque Designer</b><div class="note">Choose a template, edit the design, then download one Falcon-ready side-by-side SVG.</div></div><div class="quickBar"><button type="button" onclick="setTab(0)">Assembled Preview</button><button type="button" onclick="setTab(1)">2-Part Preview</button></div>
+<h2>Master Laser Plaque Designer</h2>
+<div id="realAiBox">
+  <div style="font-weight:800;font-size:16px">✨ REAL AI CONNECTION</div>
+  <div class="note">Paste your Cloudflare Worker URL once. Your OpenAI key stays securely in Cloudflare, not in this page.</div>
+  <label>AI Backend URL</label>
+  <input id="aiBackend" value="https://plaque-designer-ai.andrew-0ef.workers.dev">
+  <div class="airow">
+    <button type="button" onclick="realAiDesign()">✨ Create with real AI</button>
+    <button type="button" onclick="realAiTrends()">🔥 Live craft trends</button>
+  </div>
+  <button type="button" onclick="realAiArtwork()">🎨 Generate engraving artwork from last idea</button>
+  <div id="realAiResult"></div>
+</div>
+<div class='note'><b>Independent text controls:</b> the raised wording, small wording and verse can each use a different font and letter size.</div>
+<div class="note"><b>NEW:</b> In Assembled Preview, drag the main text, small text, verse and imported artwork directly with your mouse.<br><br>Laser output is one side-by-side SVG: the LEFT back plate contains its outside cut plus image/reference engraving; the RIGHT front sheet contains the integrated ring/tab/hole, inner-circle cut and both wording cuts.</div>
+<section class="templateBox">
+<div class="templateTitle">① CHOOSE YOUR TEMPLATE / SHAPE</div>
+<div class="templateHelp">Click a shape below. This changes the <b>actual plaque you edit</b> and the final side-by-side laser SVG.</div>
+<div class="shapeGrid">
+<button type="button" data-shape="circle">◯<span>Circle</span></button>
+<button type="button" data-shape="oval">⬭<span>Oval</span></button>
+<button type="button" data-shape="clipped">⬡<span>Clipped Corner</span></button>
+<button type="button" data-shape="rounded">▢<span>Rounded Rectangle</span></button>
+<button type="button" data-shape="arch">⌂<span>Arch</span></button>
+<button type="button" data-shape="ornamental">✥<span>Ornamental</span></button>
+<button type="button" data-shape="heart">♥<span>Heart</span></button>
+<button type="button" data-shape="shield">♢<span>Shield</span></button>
+<button type="button" data-shape="bauble">◉<span>Christmas Bauble</span></button>
+<button type="button" data-shape="tree">♠<span>Christmas Tree</span></button>
+</div>
+<div class="row"><div><label>Selected template</label><select id="outerShape">
+<option value="circle" selected>Circle</option><option value="oval">Oval</option><option value="clipped">Clipped Corner</option><option value="rounded">Rounded Rectangle</option><option value="arch">Arch</option><option value="ornamental">Ornamental</option><option value="heart">Heart</option><option value="shield">Shield</option><option value="bauble">Christmas Bauble</option><option value="tree">Christmas Tree</option></select></div>
+<div><label>Frame inset (mm)</label><input id="frameInset" type="number" min="3" max="30" step="0.5" value="7.5"></div></div>
+<div class="row"><div><label>Width (mm)</label><input id="shapeW" type="number" min="60" max="300" value="150"></div><div><label>Height (mm)</label><input id="shapeH" type="number" min="60" max="300" value="150"></div></div>
+<div class="templateSelected">CURRENT TEMPLATE: <b id="currentTemplateName">Circle</b></div>
+</section>
+
+<div class="ai-card">
+  <h3>✨ AI Design Assistant — Demo</h3>
+  <div class="note">Try a theme and style. This demo suggests wording, a Bible reference or saying, artwork and a plaque shape, then applies it to the live designer.</div>
+  <div class="row"><div><label>What are you making?</label><select id="aiTheme"><option>Faith</option><option>Memorial</option><option>Wedding</option><option>New Baby</option><option>Home</option><option>Christmas</option><option>Mother's Day</option><option>Friendship</option></select></div><div><label>Style</label><select id="aiStyle"><option>Minimal</option><option>Floral</option><option>Traditional</option><option>Modern Farmhouse</option><option>Rustic</option><option>Elegant</option></select></div></div>
+  <div class="row"><button type="button" onclick="aiSuggest()">✨ Create an idea</button><button type="button" onclick="aiTrendIdea()">🔥 Craft trend idea</button></div>
+  <div id="aiResult" class="ai-result"><div class="idea-title">Try it now</div><div class="note">Choose Faith + Minimal and press Create an idea.</div></div>
+</div>
+<label>Main wording</label><input id="txt" value="Be Still">
+<label>Small wording</label><input id="small" value="& KNOW">
+<label>Verse/reference</label><input id="verse" value="PSALM 46:10">
+<h3 style="margin-bottom:4px">Big raised lettering</h3>
+<label>Font</label><select id="font"><optgroup label="Script / Calligraphy">
+<option value="Brush Script MT">Brush Script MT</option>
+<option value="Segoe Script">Segoe Script</option>
+<option value="Lucida Handwriting">Lucida Handwriting</option>
+<option value="Edwardian Script ITC">Edwardian Script ITC</option>
+<option value="French Script MT">French Script MT</option>
+<option value="Kunstler Script">Kunstler Script</option>
+<option value="Monotype Corsiva">Monotype Corsiva</option>
+<option value="Mistral">Mistral</option>
+<option value="Vladimir Script">Vladimir Script</option>
+<option value="Palace Script MT">Palace Script MT</option>
+<option value="Freestyle Script">Freestyle Script</option>
+<option value="Rage Italic">Rage Italic</option>
+<option value="Segoe Print">Segoe Print</option>
+<option value="Bradley Hand ITC">Bradley Hand ITC</option>
+</optgroup>
+<optgroup label="Serif / Traditional">
+<option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option>
+<option value="Garamond">Garamond</option><option value="Book Antiqua">Book Antiqua</option>
+<option value="Baskerville">Baskerville</option>
+</optgroup>
+<optgroup label="Bold / Modern">
+<option value="Arial">Arial</option><option value="Arial Black">Arial Black</option>
+<option value="Verdana">Verdana</option><option value="Trebuchet MS">Trebuchet MS</option>
+<option value="Impact">Impact</option><option value="Century Gothic">Century Gothic</option>
+</optgroup></select>
+<div class="row"><div><label>Letter size</label><input id="fs" type="number" min="1" step="1" value="40"></div><div><label>Y position</label><input id="fy" type="number" value="73"></div></div>
+
+<h3 style="margin-bottom:4px">Small wording</h3>
+<label>Font</label><select id="font2"><optgroup label="Script / Calligraphy">
+<option value="Brush Script MT">Brush Script MT</option>
+<option value="Segoe Script">Segoe Script</option>
+<option value="Lucida Handwriting">Lucida Handwriting</option>
+<option value="Edwardian Script ITC">Edwardian Script ITC</option>
+<option value="French Script MT">French Script MT</option>
+<option value="Kunstler Script">Kunstler Script</option>
+<option value="Monotype Corsiva">Monotype Corsiva</option>
+<option value="Mistral">Mistral</option>
+<option value="Vladimir Script">Vladimir Script</option>
+<option value="Palace Script MT">Palace Script MT</option>
+<option value="Freestyle Script">Freestyle Script</option>
+<option value="Rage Italic">Rage Italic</option>
+<option value="Segoe Print">Segoe Print</option>
+<option value="Bradley Hand ITC">Bradley Hand ITC</option>
+</optgroup>
+<optgroup label="Serif / Traditional">
+<option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option>
+<option value="Garamond">Garamond</option><option value="Book Antiqua">Book Antiqua</option>
+<option value="Baskerville">Baskerville</option>
+</optgroup>
+<optgroup label="Bold / Modern">
+<option value="Arial">Arial</option><option value="Arial Black">Arial Black</option>
+<option value="Verdana">Verdana</option><option value="Trebuchet MS">Trebuchet MS</option>
+<option value="Impact">Impact</option><option value="Century Gothic">Century Gothic</option>
+</optgroup></select>
+<div class="row"><div><label>Letter size</label><input id="ss" type="number" min="1" step=".5" value="40"></div><div><label>Y position</label><input id="sy" type="number" value="102"></div></div>
+
+<div class="note" style="margin-top:5px">Fonts shown depend on fonts installed on this computer. Script fonts are grouped at the top.</div>
+<label>Or type an installed font name</label><input id="customFont" placeholder="e.g. Great Vibes, Samantha, Magnolia Sky">
+<button type="button" onclick="applyCustomFont()">Use for main wording</button>
+<label>Custom small-wording font</label><input id="customFont2" placeholder="Type any installed font name">
+<button type="button" onclick="applyCustomFont2()">Use for small wording</button>
+<h3 style="margin-bottom:4px">Verse / reference</h3>
+<label>Font</label><select id="font3">
+<option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option>
+<option value="Segoe Script">Segoe Script</option><option value="Brush Script MT">Brush Script MT</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Courier New" selected>Courier New</option>
+</select>
+<div class="row"><div><label>Letter size</label><input id="vs" type="number" min="1" step=".5" value="10"></div><div><label>Y position</label><input id="vy" type="number" value="133"></div></div>
+<h3 style="margin-bottom:4px">Back-plate hanging tag</h3>
+<label><input id="loopOn" type="checkbox" checked style="width:auto"> Add hanging tag to BACK plate</label><div class="note"><b>Tag ON by default.</b> Available for every template. It is placed on the BACK plate only; the front frame has no hanging tag.</div>
+<div class="row"><div><label>Tag outside width (mm)</label><input id="loopW" type="number" min="8" max="40" step="1" value="20"></div>
+<div><label>Tag height (mm)</label><input id="loopH" type="number" min="6" max="30" step="1" value="14"></div></div>
+<div class="row"><div><label>Hanging hole diameter (mm)</label><input id="holeD" type="number" min="2" max="15" step=".5" value="6"></div>
+<div><label>Tag position</label><input id="loopX" type="number" min="-50" max="50" step="1" value="0"></div></div>
+<div class="note">The hanging tag belongs to the BACK plate only. The front frame remains clean with no tag. The hanging hole is a separate red CUT.</div>
+<h3 style="margin-bottom:4px">Preview colours</h3>
+<div class="note">These colours are visual only and do not alter the laser cut/engrave instructions.</div>
+<div class="row"><div><label>Back plate</label><input id="cBack" type="color" value="#e5c58e"></div>
+<div><label>Outer ring</label><input id="cRing" type="color" value="#2d72b8"></div></div>
+<div class="row"><div><label>Big raised text</label><input id="cMain" type="color" value="#2d72b8"></div>
+<div><label>Small text</label><input id="cSmall" type="color" value="#222222"></div></div>
+<div class="row"><div><label>Verse/reference</label><input id="cVerse" type="color" value="#ff0000"></div>
+<div><label>Artwork/engraving</label><input id="cArt" type="color" value="#555555"></div></div>
+<button type="button" onclick="resetColours()">Reset preview colours</button>
+<label>Background artwork / image</label><input type="file" id="art" accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp">
+<div class="note">SVG stays vector. PNG/JPG/WebP are embedded as raster images in the exported SVG.</div><div id="artStatus" class="note">Choose SVG, PNG, JPG/JPEG or WebP. Default: fill the complete 150 mm back plate and crop at the circular edge.</div>
+<label>Background positioning</label>
+<select id="artCentreMode">
+<option value="inner" selected>Centre + crop to 135 mm inner circle</option>
+<option value="back">Centre + crop to 150 mm back plate</option>
+<option value="manual">Manual X / Y position</option>
+</select>
+<label>Background fit</label>
+<select id="artFit"><option value="cover" selected>Fill selected circle + crop at edge</option><option value="contain">Fit whole image inside selected circle</option></select>
+<div class="note"><b>Default artwork frame:</b> exact 135 mm circle. The artwork centre is mathematically locked to the same centre point as the inner red cut circle.</div><h3 style="margin-bottom:4px">Laser image cleanup</h3>
+<label><input id="removeLight" type="checkbox" checked style="width:auto"> Remove light/white background</label>
+<div class="row"><div><label>Darkness threshold</label><input id="threshold" type="range" min="0" max="255" value="185"></div>
+<div><label>Threshold value</label><input id="thresholdNum" type="number" min="0" max="255" value="185"></div></div>
+<label><input id="monoArt" type="checkbox" checked style="width:auto"> Convert remaining artwork to solid black</label>
+<div class="note">Pixels lighter than the threshold become transparent. Dark notes/lines remain. Increase the threshold to keep more grey detail; reduce it to keep only the darkest marks.</div><button type="button" onclick="previewCleanedArtwork()">Preview cleaned laser image</button>
+<div id="cleanStatus" class="note">Cleanup is always applied to the exported Falcon-ready back plate when enabled.</div>
+
+<div class="row"><div><label>Artwork scale %</label><input id="as" type="number" value="100"></div><div><label>Opacity %</label><input id="ao" type="number" value="40"></div></div>
+<div class="row"><div><label>Image X (mm)</label><input id="artX" type="number" step="1" value="0"></div><div><label>Image Y (mm)</label><input id="artY" type="number" step="1" value="0"></div></div>
+<div class="row"><button type="button" onclick="nudgeArt(-1,0)">← Left 1 mm</button><button type="button" onclick="nudgeArt(1,0)">Right 1 mm →</button></div>
+<div class="row"><button type="button" onclick="nudgeArt(0,-1)">↑ Up 1 mm</button><button type="button" onclick="nudgeArt(0,1)">Down 1 mm ↓</button></div>
+<button type="button" onclick="centreArt()">Re-centre image exactly</button><div class="note"><b>Centred means X = 0 and Y = 0 at the exact centre of the circular plaque.</b></div>
+<div class="note">By default the artwork is scaled, centred and clipped to the exact 135 mm inner circle. Its centre point matches the plaque centre. X/Y controls are only for deliberate fine adjustment.</div>
+<h3 style="margin-bottom:4px">Laser operation settings</h3>
+<div class="note">These settings are embedded as layer/group names and SVG metadata. Falcon Design Space may still require you to assign the values after import; SVG itself cannot universally force machine speed/power.</div>
+<div class="row"><div><label>Cut speed (mm/min)</label><input id="cutSpeed" type="number" value="350"></div><div><label>Cut power %</label><input id="cutPower" type="number" value="100"></div></div>
+<div class="row"><div><label>Image engrave speed (mm/min)</label><input id="imageSpeed" type="number" value="8000"></div><div><label>Image engrave power %</label><input id="imagePower" type="number" value="80"></div></div>
+<div class="row"><div><label>Line engrave speed (mm/min)</label><input id="lineSpeed" type="number" value="3500"></div><div><label>Line engrave power %</label><input id="linePower" type="number" value="40"></div></div>
+<h3 style="margin-bottom:4px">Laser-ready side-by-side export</h3><div class="note"><b>Defaults:</b> Main wording 40, small wording 40, verse Courier 10 at Y 133. Verse is red in the design preview; in the laser export it is automatically converted to BLACK because BLACK = ENGRAVE.</div>
+<div class="note">
+<b>LEFT PART — BACK PLATE</b><br>
+• Selected outside shape = CUT<br>• Optional hanging tag + hole on BACK plate = CUT<br>
+• Reference / verse = ENGRAVE<br>
+• Background image = ENGRAVE<br><br>
+<b>RIGHT PART — FRONT RING + WORDING</b><br>
+• Matching selected outer shape = CUT<br>
+• Hole in hanging tab = CUT<br>
+• Matching inset opening = CUT<br>
+• Main wording = CUT<br>
+• Small wording = CUT<br><br>
+Both physical parts are positioned side by side in the same SVG. The downloaded filename is automatically taken from the <b>Main wording</b>.<br><br>
+<b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
+Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
+</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG</button>
+<div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
+<p class="note"><b>Important:</b> browser fonts depend on fonts installed on your computer. For guaranteed identical lettering on another computer, text should eventually be converted to vector paths.</p>
+</aside><main>
+<div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">Side-by-Side Parts</button></div>
+<div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
+</main></div>
+<script>
+let mode='assembled', artwork='', artSource=null;\nconst AI_IDEAS={\n Faith:[\n  {main:'Be Still',small:'& KNOW',verse:'PSALM 46:10',art:'Fine-line wildflowers around the lower edge',shape:'arch',tag:'Minimal faith plaque'},\n  {main:'Fear Not',small:'I AM WITH YOU',verse:'ISAIAH 41:10',art:'Delicate olive branch line art',shape:'rounded',tag:'Calm botanical faith'},\n  {main:'Walk by Faith',small:'NOT BY SIGHT',verse:'2 CORINTHIANS 5:7',art:'Simple path and mountain line engraving',shape:'clipped',tag:'Modern inspirational'}],\n Memorial:[\n  {main:'Forever Loved',small:'ALWAYS REMEMBERED',verse:'IN LOVING MEMORY',art:'Single-line forget-me-not flowers',shape:'heart',tag:'Gentle memorial'},\n  {main:'Always Near',small:'IN OUR HEARTS',verse:'FOREVER REMEMBERED',art:'Feather with small stars',shape:'oval',tag:'Soft remembrance'}],\n Wedding:[{main:'Better Together',small:'EST. 2026',verse:'TWO BECOME ONE',art:'Minimal intertwined leaves',shape:'arch',tag:'Wedding keepsake'}],\n 'New Baby':[{main:'Hello Little One',small:'WELCOME HOME',verse:'LOVED BEYOND MEASURE',art:'Moon, stars and tiny cloud line art',shape:'bauble',tag:'Nursery plaque'}],\n Home:[{main:'Home',small:'OUR HAPPY PLACE',verse:'LOVE LIVES HERE',art:'Simple wildflower border',shape:'rounded',tag:'Modern home sign'}],\n Christmas:[{main:'Merry & Bright',small:'CHRISTMAS 2026',verse:'PEACE • LOVE • JOY',art:'Fine-line pine sprigs and stars',shape:'bauble',tag:'Layered Christmas ornament'}],\n "Mother's Day":[{main:'Mum',small:'LOVE YOU ALWAYS',verse:'HOME IS WHERE MUM IS',art:'Birth-flower style bouquet',shape:'heart',tag:'Mother’s Day gift'}],\n Friendship:[{main:'Good Friends',small:'ARE LIKE STARS',verse:'ALWAYS THERE',art:'Tiny stars and fine-line florals',shape:'oval',tag:'Friendship gift'}]\n};\nlet aiLast=null, aiIndex=0;\nfunction aiPick(theme){const a=AI_IDEAS[theme]||AI_IDEAS.Faith; const v=a[aiIndex++%a.length]; return {...v};}\nfunction aiShow(v,trend=false){aiLast=v; const style=q('aiStyle').value; q('aiResult').innerHTML=`<div class="idea-title">${trend?'🔥 Trend-inspired concept':'✨ Suggested design'}</div><span class="ai-chip">${q('aiTheme').value}</span><span class="ai-chip">${style}</span><span class="ai-chip">${v.tag}</span><div style="margin-top:8px"><b>Main:</b> ${v.main}<br><b>Small:</b> ${v.small}<br><b>Reference/saying:</b> ${v.verse}<br><b>Artwork:</b> ${v.art}<br><b>Shape:</b> ${v.shape}</div><div class="ai-trend">Demo mode: trend concepts are illustrative; a production version can use fresh web trend research rather than claiming live trend data.</div><div class="ai-actions"><button type="button" onclick="aiApply()">✓ Apply to plaque</button><button type="button" onclick="aiSuggest()">↻ Try another</button></div>`;}\nfunction aiSuggest(){aiShow(aiPick(q('aiTheme').value),false)}\nfunction aiTrendIdea(){const v=aiPick(q('aiTheme').value); const style=q('aiStyle').value; if(style==='Modern Farmhouse'){v.art='Sparse botanical line art with generous negative space';v.tag='Trend-style layered sign';} if(style==='Floral')v.art='Fine-line birth-flower / wildflower engraving'; if(style==='Minimal')v.art='One-colour fine-line motif with lots of negative space'; aiShow(v,true)}\nfunction aiApply(){if(!aiLast)return; q('txt').value=aiLast.main;q('small').value=aiLast.small;q('verse').value=aiLast.verse;if(q('outerShape'))q('outerShape').value=aiLast.shape; pos.main.y=73;pos.small.y=102;pos.verse.y=133;q('fy').value=73;q('sy').value=102;q('vy').value=133;draw();q('aiResult').insertAdjacentHTML('beforeend','<div class="note" style="margin-top:7px"><b>Applied ✓</b> — wording, reference and shape are now on the live plaque. Artwork remains a suggestion until generated/imported.</div>')}\n
+let customMainFont='', customSmallFont='';
+const q=x=>document.getElementById(x);
+['txt','small','verse','font','font2','font3','fs','ss','vs','as','ao','artFit','artCentreMode','artX','artY','cBack','cRing','cMain','cSmall','cVerse','cArt','loopOn','loopW','loopH','holeD','loopX','outerShape','frameInset','shapeW','shapeH'].forEach(x=>q(x).addEventListener('input',draw));
+q('font').addEventListener('change',()=>{customMainFont='';});
+q('font2').addEventListener('change',()=>{customSmallFont='';});
+function applyCustomFont(){customMainFont=q('customFont').value.trim();draw();}
+function applyCustomFont2(){customSmallFont=q('customFont2').value.trim();draw();}
+q('fy').addEventListener('input',()=>{pos.main.y=+q('fy').value;draw()});
+q('sy').addEventListener('input',()=>{pos.small.y=+q('sy').value;draw()});
+q('vy').addEventListener('input',()=>{pos.verse.y=+q('vy').value;draw()});
+q('art').addEventListener('change',async e=>{
+ let f=e.target.files[0]; if(!f)return;
+ const status=q('artStatus');
+ try{
+   pos.art.x=0; pos.art.y=0; q('artX').value=0; q('artY').value=0; q('artCentreMode').value='inner'; q('as').value=100;
+   const lower=f.name.toLowerCase();
+   if(lower.endsWith('.svg') || f.type==='image/svg+xml'){
+     let t=await f.text(), d=new DOMParser().parseFromString(t,'image/svg+xml');
+     if(d.querySelector('parsererror') || d.documentElement.nodeName.toLowerCase()!=='svg') throw new Error('Invalid SVG');
+     let root=d.documentElement, vb=(root.getAttribute('viewBox')||'').trim().split(/[ ,]+/).map(Number);
+     let w=parseFloat(root.getAttribute('width'))||100,h=parseFloat(root.getAttribute('height'))||100;
+     if(vb.length!==4||vb.some(Number.isNaN))vb=[0,0,w,h];
+     let inner=[...root.childNodes].map(n=>new XMLSerializer().serializeToString(n)).join('');
+     artSource={type:'svg',vb,inner,name:f.name}; rebuildArtwork();
+     status.textContent='Loaded: '+f.name+' — background is clipped to the circular back plate.';
+   } else {
+     const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(f)});
+     const img=new Image();
+     img.onload=()=>{artSource={type:'raster',data,w:img.naturalWidth,h:img.naturalHeight,name:f.name};rebuildArtwork();status.textContent='Loaded: '+f.name+' — background is clipped to the circular back plate.';};
+     img.src=data;
+   }
+ }catch(err){status.textContent='Could not display this file. Please use SVG, PNG, JPG/JPEG or WebP.';}
+});
+function applyArtCentre(){
+ let mode=q('artCentreMode').value;
+ if(mode==='inner' || mode==='back'){
+   q('artX').value=0; q('artY').value=0; pos.art.x=0; pos.art.y=0;
+ }
+ rebuildArtwork();
+}
+q('artCentreMode').addEventListener('change',applyArtCentre);
+function nudgeArt(dx,dy){
+ q('artCentreMode').value='manual';
+ q('artX').value=(+q('artX').value||0)+dx;
+ q('artY').value=(+q('artY').value||0)+dy;
+ draw();
+}
+function centreArt(){
+ q('artCentreMode').value='inner';
+ q('artX').value=0; q('artY').value=0; pos.art.x=0; pos.art.y=0; rebuildArtwork();
+}
+function rebuildArtwork(){
+ if(!artSource)return;
+ const target=q('artCentreMode').value==='back'?150:135;
+ const cover=q('artFit').value==='cover';
+ if(artSource.type==='raster'){
+   const sc=cover?Math.max(target/artSource.w,target/artSource.h):Math.min(target/artSource.w,target/artSource.h);
+   const w=artSource.w*sc, h=artSource.h*sc;
+   artwork=`<image href="${artSource.data}" x="${75-w/2}" y="${75-h/2}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
+ }else{
+   const [vx,vy,vw,vh]=artSource.vb;
+   const sc=cover?Math.max(target/vw,target/vh):Math.min(target/vw,target/vh);
+   const tx=75-(vx+vw/2)*sc, ty=75-(vy+vh/2)*sc;
+   artwork=`<g transform="translate(${tx} ${ty}) scale(${sc})">${artSource.inner}</g>`;
+ }
+ draw();
+}
+q('artFit').addEventListener('change',rebuildArtwork);
+q('threshold').addEventListener('input',()=>{q('thresholdNum').value=q('threshold').value;draw();});
+q('thresholdNum').addEventListener('input',()=>{q('threshold').value=q('thresholdNum').value;draw();});
+['removeLight','monoArt'].forEach(id=>q(id).addEventListener('input',draw));
+
+q('artX').addEventListener('input',()=>{q('artCentreMode').value='manual';});
+q('artY').addEventListener('input',()=>{q('artCentreMode').value='manual';});
+
+function shapePath(kind,x,y,w,h){
+ const cx=x+w/2, cy=y+h/2;
+ if(kind==='circle'){const r=Math.min(w,h)/2;return `M${cx-r},${cy} A${r},${r} 0 1 0 ${cx+r},${cy} A${r},${r} 0 1 0 ${cx-r},${cy} Z`;}
+ if(kind==='oval') return `M${x},${cy} A${w/2},${h/2} 0 1 0 ${x+w},${cy} A${w/2},${h/2} 0 1 0 ${x},${cy} Z`;
+ if(kind==='rounded'){const r=Math.min(w,h)*.1;return `M${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h-r}Q${x+w},${y+h} ${x+w-r},${y+h}H${x+r}Q${x},${y+h} ${x},${y+h-r}V${y+r}Q${x},${y} ${x+r},${y}Z`;}
+ if(kind==='clipped'){const c=Math.min(w,h)*.13;return `M${x+c},${y}H${x+w-c}L${x+w},${y+c}V${y+h-c}L${x+w-c},${y+h}H${x+c}L${x},${y+h-c}V${y+c}Z`;}
+ if(kind==='arch'){const r=Math.min(w/2,h*.55);return `M${x},${y+h}V${y+r}A${w/2},${r} 0 0 1 ${x+w},${y+r}V${y+h}Z`;}
+ if(kind==='heart') return `M${cx},${y+h}C${x+w*.12},${y+h*.7} ${x},${y+h*.4} ${x+w*.1},${y+h*.2}C${x+w*.2},${y} ${x+w*.42},${y} ${cx},${y+h*.2}C${x+w*.58},${y} ${x+w*.8},${y} ${x+w*.9},${y+h*.2}C${x+w},${y+h*.4} ${x+w*.88},${y+h*.7} ${cx},${y+h}Z`;
+ if(kind==='shield') return `M${x+w*.1},${y}H${x+w*.9}V${y+h*.45}C${x+w*.88},${y+h*.72} ${x+w*.68},${y+h*.9} ${cx},${y+h}C${x+w*.32},${y+h*.9} ${x+w*.12},${y+h*.72} ${x+w*.1},${y+h*.45}Z`;
+ if(kind==='ornamental') return `M${x+w*.16},${y}Q${x+w*.28},${y+h*.07} ${x+w*.38},${y}Q${cx},${y-h*.04} ${x+w*.62},${y}Q${x+w*.72},${y+h*.07} ${x+w*.84},${y}Q${x+w},${y+h*.1} ${x+w*.94},${y+h*.27}Q${x+w},${cy} ${x+w*.94},${y+h*.73}Q${x+w},${y+h*.9} ${x+w*.84},${y+h}Q${x+w*.72},${y+h*.93} ${x+w*.62},${y+h}Q${cx},${y+h*1.04} ${x+w*.38},${y+h}Q${x+w*.28},${y+h*.93} ${x+w*.16},${y+h}Q${x},${y+h*.9} ${x+w*.06},${y+h*.73}Q${x},${cy} ${x+w*.06},${y+h*.27}Q${x},${y+h*.1} ${x+w*.16},${y}Z`;
+ if(kind==='bauble'){const rr=Math.min(w,h*.82)/2, by=y+h*.16, ccx=cx, ccy=by+rr;return `M${ccx-rr},${ccy}A${rr},${rr} 0 1 0 ${ccx+rr},${ccy}A${rr},${rr} 0 1 0 ${ccx-rr},${ccy}Z M${cx-w*.12},${by}V${y+h*.06}H${cx+w*.12}V${by}Z`;}
+ if(kind==='tree') return `M${cx},${y}L${x+w*.68},${y+h*.3}H${x+w*.57}L${x+w*.78},${y+h*.58}H${x+w*.64}L${x+w*.88},${y+h*.86}H${x+w*.57}V${y+h}H${x+w*.43}V${y+h*.86}H${x+w*.12}L${x+w*.36},${y+h*.58}H${x+w*.22}L${x+w*.43},${y+h*.3}H${x+w*.32}Z`;
+ return shapePath('circle',x,y,w,h);
+}
+function shapeDims(){return {w:Math.max(60,+q('shapeW').value||150),h:Math.max(60,+q('shapeH').value||150),i:Math.max(3,+q('frameInset').value||7.5),k:q('outerShape').value};}
+function shapeEl(x,y,w,h,fill,stroke='#e00000',sw=.35){return `<path d="${shapePath(q('outerShape').value,x,y,w,h)}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;}
+function clipShapeDef(id,x,y,w,h){return `<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse"><path d="${shapePath(q('outerShape').value,x,y,w,h)}"/></clipPath></defs>`;}
+function artGroup(cx=75, cy=75){
+ let ax=+q('artX').value||0, ay=+q('artY').value||0, userScale=(+q('as').value||100)/100;
+ let d=shapeDims(), useBack=q('artCentreMode').value==='back', inset=useBack?0:d.i;
+ let x=cx-d.w/2+inset, y=cy-d.h/2+inset, w=d.w-2*inset, h=d.h-2*inset;
+ let clipId=`artShape_${String(cx).replace('.','_')}_${String(cy).replace('.','_')}`;
+ let tx=(cx-75)+ax, ty=(cy-75)+ay;
+ return `${clipShapeDef(clipId,x,y,w,h)}<g clip-path="url(#${clipId})" opacity="${(+q('ao').value||100)/100}"><g transform="translate(${tx} ${ty}) translate(75 75) scale(${userScale}) translate(-75 -75)">${artwork}</g></g>`;
+}
+let pos={main:{x:85,y:73},small:{x:85,y:102},verse:{x:85,y:113},art:{x:0,y:0}};
+function lettering(cx=85){return `<g class="letter"><text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}">${esc(q('txt').value)}</text></g>`}
+function engraving(cx=85,cy=85){return `<g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g><g class="engrave"><text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text><text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}">${esc(q('verse').value)}</text></g>`}
+function esc(s){return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
+function ringOuterPath(cx=85, cy=85, r=75, preview=true){
+ // One continuous outer cut path: circle -> left shoulder -> loop -> right shoulder -> circle.
+ if(!q('loopOn').checked)
+   return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e00000" stroke-width=".35"/>`;
+ let w=Math.max(8,+q('loopW').value||20), h=Math.max(6,+q('loopH').value||14);
+ let hd=Math.max(2,Math.min(w-4,+q('holeD').value||6)), dx=+q('loopX').value||0;
+ let lc=cx+dx, top=cy-r, half=w/2;
+ // Join points lie on the circle at the loop's left/right x positions.
+ let lx=lc-half, rx=lc+half;
+ let ldx=lx-cx, rdx=rx-cx;
+ let ly=cy-Math.sqrt(Math.max(0,r*r-ldx*ldx));
+ let ry=cy-Math.sqrt(Math.max(0,r*r-rdx*rdx));
+ let loopTop=top-h;
+ let shoulderY=Math.min(ly,ry)+2;
+ let fill=preview?q('cRing').value:'none';
+ let d=`M ${lx} ${ly}
+        L ${lx} ${shoulderY}
+        L ${lx} ${loopTop+h/2}
+        A ${half} ${h/2} 0 0 1 ${rx} ${loopTop+h/2}
+        L ${rx} ${shoulderY}
+        L ${rx} ${ry}
+        A ${r} ${r} 0 1 1 ${lx} ${ly} Z`;
+ let holeY=loopTop+h/2;
+ return `<path id="INTEGRATED_RING_OUTER" d="${d}" fill="${fill}" stroke="#e00000" stroke-width=".35"/>
+ <circle id="HANGING_HOLE" cx="${lc}" cy="${holeY}" r="${hd/2}" fill="${preview?'white':'none'}" stroke="#e00000" stroke-width=".35"/>`;
+}
+function loopSVG(cx=85, preview=true){
+ // Kept for compatibility: now returns the integrated ring perimeter, not a separate tab.
+ return ringOuterPath(cx, preview?85:75, 75, preview);
+}
+function backTagSVG(cx, topY, preview=true){
+ if(!q('loopOn').checked) return '';
+ let w=Math.max(8,+q('loopW').value||20), h=Math.max(6,+q('loopH').value||14);
+ let hd=Math.max(2,Math.min(w-4,+q('holeD').value||6)), dx=+q('loopX').value||0;
+ let x=cx+dx-w/2, y=topY-h+2;
+ let fill=preview?q('cBack').value:'none', stroke=preview?'#e00000':'#ff0000';
+ return `<path d="M ${x} ${topY+3} V ${y+h/2} A ${w/2} ${h/2} 0 0 1 ${x+w} ${y+h/2} V ${topY+3}" fill="${fill}" stroke="${stroke}" stroke-width=".35"/>
+ <circle cx="${cx+dx}" cy="${y+h/2}" r="${hd/2}" fill="${preview?'white':'none'}" stroke="${stroke}" stroke-width=".35"/>`;
+}
+function draw(){
+ let s=q('svg'), d=shapeDims(), pad=20, cx=pad+d.w/2, cy=pad+d.h/2, inset=d.i;
+ // Keep draggable text in sensible place when first switching from the original circle.
+ if(!pos._shapeInit){pos.main.x=cx;pos.small.x=cx;pos.verse.x=cx;pos.main.y=cy-2;pos.small.y=cy+27;pos.verse.y=cy+d.h/2-17;pos._shapeInit=true;}
+ if(mode==='assembled'){
+   s.setAttribute('viewBox',`0 0 ${d.w+pad*2} ${d.h+pad*2}`);
+   s.innerHTML=`${backTagSVG(cx,pad,true)}${shapeEl(pad,pad,d.w,d.h,q('cBack').value)}
+    ${shapeEl(pad,pad,d.w,d.h,q('cRing').value)}
+    ${shapeEl(pad+inset,pad+inset,d.w-2*inset,d.h-2*inset,'#fff')}
+    <g style="color:${q('cArt').value}" stroke="${q('cArt').value}"><g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g></g>
+    <text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text>
+    <text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="${q('cMain').value}">${esc(q('txt').value)}</text>
+    <text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="${q('cSmall').value}">${esc(q('small').value)}</text>`;
+ }else{
+   let gap=20, total=d.w*2+gap+pad*2, right=pad+d.w+gap;
+   s.setAttribute('viewBox',`0 0 ${total} ${d.h+pad*2}`);
+   s.innerHTML=`<g>${backTagSVG(cx,pad,true)}${shapeEl(pad,pad,d.w,d.h,q('cBack').value)}<g style="color:${q('cArt').value}">${artGroup(cx,cy)}</g><text x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text></g>
+   <g transform="translate(${right-pad} 0)">${shapeEl(pad,pad,d.w,d.h,q('cRing').value)}${shapeEl(pad+inset,pad+inset,d.w-2*inset,d.h-2*inset,'#fff')}<text x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="${q('cMain').value}">${esc(q('txt').value)}</text><text x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="${q('cSmall').value}">${esc(q('small').value)}</text></g>`;
+ }
+ attachDrag();
+}
+function resetColours(){
+ q('cBack').value='#e5c58e'; q('cRing').value='#2d72b8'; q('cMain').value='#2d72b8';
+ q('cSmall').value='#222222'; q('cVerse').value='#222222'; q('cArt').value='#555555'; draw();
+}
+let drag=null, start=null;
+function svgPoint(evt){
+ const s=q('svg'), pt=s.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY;
+ return pt.matrixTransform(s.getScreenCTM().inverse());
+}
+function attachDrag(){
+ q('svg').querySelectorAll('.draggable').forEach(el=>{
+  el.addEventListener('pointerdown',e=>{
+   e.preventDefault(); e.stopPropagation();
+   let key=el.dataset.key; drag={key,el}; start=svgPoint(e);
+   el.classList.add('selected'); el.setPointerCapture?.(e.pointerId);
+  });
+ });
+}
+q('svg').addEventListener('pointermove',e=>{
+ if(!drag)return;
+ let p=svgPoint(e), dx=p.x-start.x, dy=p.y-start.y; start=p;
+ if(drag.key==='art'){
+   q('artCentreMode').value='manual';
+   q('artX').value=(+q('artX').value||0)+dx;
+   q('artY').value=(+q('artY').value||0)+dy;
+ } else {pos[drag.key].x+=dx;pos[drag.key].y+=dy;}
+ draw();
+});
+window.addEventListener('pointerup',()=>{drag=null;});
+
+function triggerDownload(content, filename){
+ const blob=new Blob([content],{type:'image/svg+xml;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download=filename;
+ a.style.display='none';
+ document.body.appendChild(a);
+ a.click();
+ setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
+}
+function file(svg,name,withLoop=false){
+ let extra=withLoop&&q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
+ let vb=withLoop&&q('loopOn').checked ? `0 -${extra} 150 ${150+extra}` : '0 0 150 150';
+ let hh=150+extra;
+ let content=`<?xml version="1.0" encoding="UTF-8"?>
+ <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+ width="150mm" height="${hh}mm" viewBox="${vb}">${svg}</svg>`;
+ triggerDownload(content,name);
+}
+
+async function previewCleanedArtwork(){
+ if(!artSource || artSource.type!=='raster'){
+   q('cleanStatus').textContent='Cleanup preview applies to PNG/JPG/WebP images.';
+   return;
+ }
+ q('cleanStatus').textContent='Processing preview…';
+ try{
+   const data=await makeCircularRasterDataURL();
+   const old=artwork;
+   artwork=`<image href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
+   draw();
+   q('cleanStatus').textContent='Showing cleaned artwork. Re-upload or change settings and preview again to refresh.';
+ }catch(e){q('cleanStatus').textContent='Could not process preview: '+e.message;}
+}
+async function makeCircularRasterDataURL(){
+ if(!artSource || artSource.type!=='raster') return null;
+
+ const target=q('artCentreMode').value==='back'?150:135;
+ const radius=target/2, px=1200, mmToPx=px/150;
+ const canvas=document.createElement('canvas');
+ canvas.width=px; canvas.height=px;
+ const ctx=canvas.getContext('2d');
+
+ const img=await new Promise((resolve,reject)=>{
+   const im=new Image(); im.onload=()=>resolve(im); im.onerror=reject; im.src=artSource.data;
+ });
+
+ ctx.clearRect(0,0,px,px);
+ ctx.save();
+ ctx.beginPath();
+ ctx.arc(75*mmToPx,75*mmToPx,radius*mmToPx,0,Math.PI*2);
+ ctx.clip();
+
+ const cover=q('artFit').value==='cover';
+ const sourceW=img.naturalWidth, sourceH=img.naturalHeight;
+ const scMM=cover?Math.max(target/sourceW,target/sourceH):Math.min(target/sourceW,target/sourceH);
+ const userScale=(+q('as').value||100)/100;
+ const drawW=sourceW*scMM*userScale*mmToPx, drawH=sourceH*scMM*userScale*mmToPx;
+ const ax=(+q('artX').value||0)*mmToPx, ay=(+q('artY').value||0)*mmToPx;
+ ctx.globalAlpha=1;
+ ctx.drawImage(img,75*mmToPx-drawW/2+ax,75*mmToPx-drawH/2+ay,drawW,drawH);
+ ctx.restore();
+
+ // Physically remove light pixels from the raster.
+ if(q('removeLight').checked){
+   const threshold=+q('threshold').value||185;
+   const mono=q('monoArt').checked;
+   const id=ctx.getImageData(0,0,px,px), d=id.data;
+   for(let i=0;i<d.length;i+=4){
+     if(d[i+3]===0) continue;
+     // perceived luminance
+     const lum=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];
+     if(lum>=threshold){
+       d[i+3]=0;
+     }else if(mono){
+       d[i]=0; d[i+1]=0; d[i+2]=0; d[i+3]=255;
+     }
+   }
+   ctx.putImageData(id,0,0);
+ }
+ return canvas.toDataURL('image/png');
+}
+async function exportArtForLaser(){
+ if(!artSource) return '';
+ if(artSource.type==='raster'){
+   const data=await makeCircularRasterDataURL();
+   return `<image href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
+ }
+ // SVG artwork can remain vector, but flatten the visible frame using the normal SVG clip.
+ return artGroup(75,75);
+}
+function exportArt(cx=75){
+ return artGroup(cx,75);
+}
+function exportVerse(cx=75){
+ let vx=pos.verse.x-10;
+ return `<text x="${vx}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="none" stroke="#000">${esc(q('verse').value)}</text>`;
+}
+function exportCutWords(cx=75){
+ let mx=pos.main.x-10, sx=pos.small.x-10;
+ return `<text x="${mx}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#1261d6">${esc(q('txt').value)}</text>
+ <text x="${sx}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#1261d6">${esc(q('small').value)}</text>`;
+}
+
+
+function safeFileName(v){
+ return (v||'Plaque').trim()
+   .replace(/[\\/:*?"<>|]+/g,'-')
+   .replace(/\s+/g,' ')
+   .substring(0,80) || 'Plaque';
+}
+
+async function buildSideBySideLaserSVG(){
+ const laserArt=await exportArtForLaser(), d=shapeDims(), gap=15, rightX=d.w+gap;
+ const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
+ const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
+ const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
+ const outer=shapePath(d.k,0,0,d.w,d.h), inner=shapePath(d.k,d.i,d.i,d.w-2*d.i,d.h-2*d.i);
+ // Map editor text positions (which include 20 mm preview padding) into export coordinates.
+ const mx=pos.main.x-20, my=pos.main.y-20, sx=pos.small.x-20, sy=pos.small.y-20, vx=pos.verse.x-20, vy=pos.verse.y-20;
+ const backTag=backTagSVG(d.w/2,0,false);
+ const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backTag}<path d="${outer}"/><g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/><text x="${mx}" y="${my}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text><text x="${sx}" y="${sy}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text></g></g>`;
+ const ref=`<g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"><text x="${vx}" y="${vy}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="#000000">${esc(q('verse').value)}</text></g>`;
+ const img=`<g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct" data-operation="image-engrave" data-speed-mm-min="${is}" data-power-percent="${ip}">${laserArt}</g>`;
+ const metadata={shape:d.k,width_mm:d.w,height_mm:d.h,cut:{speed_mm_min:cs,power_percent:cp},image_engrave:{speed_mm_min:is,power_percent:ip},line_engrave:{speed_mm_min:ls,power_percent:lp}};
+ const tagExtra=q('loopOn').checked?Math.max(6,+q('loopH').value||14):0;
+ return `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${d.w*2+gap}mm" height="${d.h+tagExtra}mm" viewBox="0 -${tagExtra} ${d.w*2+gap} ${d.h+tagExtra}"><title>${safeFileName(q('txt').value)} - ${d.k}</title><metadata>${JSON.stringify(metadata)}</metadata>${cut}${ref}${img}</svg>`;
+}
+async function downloadSideBySideLaserSVG(){
+ try{
+   const svg=await buildSideBySideLaserSVG();
+   const filename=safeFileName(q('txt').value)+'.svg';
+   triggerDownload(svg,filename);
+   const st=document.getElementById('downloadStatus');
+   if(st) st.textContent='Downloaded '+filename+' — LEFT: back plate cut + image/reference engrave. LEFT: back plate + hanging tag/hole cut + image/reference engrave. RIGHT: front frame/inner opening + both wordings cut.';
+ }catch(err){
+   alert('Could not create side-by-side laser SVG: '+err.message);
+ }
+}
+async function buildThreeLayerSVG(){
+ const laserArt=await exportArtForLaser();
+ const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
+ const vbY=-loopExtra, vbH=150+loopExtra;
+
+ // All three layers deliberately occupy the SAME coordinates so they register perfectly.
+ // Distinct stroke colours help Falcon separate/select operations after import:
+ // red = CUT, blue = reference engrave, black = image engrave.
+ const cutLayer=`
+ <g id="LAYER_1_CUT" data-layer="CUT">
+   ${ringOuterPath(75,75,74.9,false)}
+   <circle cx="75" cy="75" r="67.5" stroke="#ff0000" fill="none" stroke-width=".25"/>
+   ${exportCutWords(75).replaceAll('#0066dd','#ff0000').replaceAll('#06d','#ff0000')}
+ </g>`;
+
+ const refRaw=exportVerse(75)
+   .replaceAll('fill="'+q('cVerse').value+'"','fill="#0000ff"')
+   .replaceAll('stroke="'+q('cVerse').value+'"','stroke="#0000ff"');
+ const referenceLayer=`
+ <g id="LAYER_2_REFERENCE_ENGRAVE" data-layer="ENGRAVE_REFERENCE">
+   ${refRaw}
+ </g>`;
+
+ const imageLayer=`
+ <g id="LAYER_3_IMAGE_ENGRAVE" data-layer="ENGRAVE_IMAGE">
+   ${laserArt}
+ </g>`;
+
+ return `<?xml version="1.0" encoding="UTF-8"?>
+ <svg xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      width="150mm" height="${150+loopExtra}mm"
+      viewBox="0 ${vbY} 150 ${vbH}">
+   <title>Laser Plaque - 3 Registered Layers</title>
+   ${cutLayer}
+   ${referenceLayer}
+   ${imageLayer}
+ </svg>`;
+}
+
+async function downloadThreeLayerSVG(){
+ try{
+   const svg=await buildThreeLayerSVG();
+   triggerDownload(svg,'PLAQUE_3_LAYERS_CUT_REFERENCE_IMAGE.svg');
+   const st=document.getElementById('downloadStatus');
+   if(st) st.textContent='Downloaded ONE SVG containing 3 aligned groups: CUT, REFERENCE ENGRAVE and IMAGE ENGRAVE.';
+ }catch(err){
+   alert('Could not create 3-layer SVG: '+err.message);
+ }
+}
+async function downloadPart(which){
+ try{
+   if(which==='cut'){
+     file(`${ringOuterPath(75,75,74.9,false)}
+       <circle cx="75" cy="75" r="67.5" stroke="#e00000" fill="none"/>
+       ${exportCutWords(75)}`,
+       'LAYER_1_CUT_RING_TAB_HOLE_AND_WORDING.svg',true);
+   }
+   if(which==='reference'){
+     // Full 150mm canvas keeps the reference aligned to the exact same plaque centre.
+     file(`${exportVerse(75)}`,'LAYER_2_ENGRAVE_REFERENCE.svg');
+   }
+   if(which==='image'){
+     let laserArt=await exportArtForLaser();
+     file(`${laserArt}`,'LAYER_3_ENGRAVE_BACKGROUND_IMAGE.svg');
+   }
+ }catch(err){
+   const st=document.getElementById('downloadStatus');
+   if(st) st.textContent='Download error: '+err.message;
+   alert('Could not create the SVG download: '+err.message);
+ }
+}
+async function downloadAllLayersSeparately(){
+ // Separate downloads preserve three independently selectable laser layers.
+ await downloadPart('cut');
+ setTimeout(()=>downloadPart('reference'),250);
+ setTimeout(()=>downloadPart('image'),500);
+ const st=document.getElementById('downloadStatus');
+ if(st) st.textContent='Created 3 aligned files: CUT, REFERENCE and IMAGE. If Chrome asks, allow multiple downloads for this file.';
+}
+
+['outerShape','shapeW','shapeH'].forEach(id=>q(id).addEventListener('change',()=>{let d=shapeDims(),pad=20,cx=pad+d.w/2,cy=pad+d.h/2;pos.main.x=cx;pos.main.y=cy-2;pos.small.x=cx;pos.small.y=cy+27;pos.verse.x=cx;pos.verse.y=pad+d.h-17;draw();}));
+draw();
+
+function syncTemplateButtons(){
+ const sel=q('outerShape'); if(!sel)return;
+ document.querySelectorAll('.shapeGrid button[data-shape]').forEach(b=>b.classList.toggle('active',b.dataset.shape===sel.value));
+ const n=document.getElementById('currentTemplateName'); if(n)n.textContent=sel.options[sel.selectedIndex].text;
+}
+document.querySelectorAll('.shapeGrid button[data-shape]').forEach(b=>b.addEventListener('click',()=>{
+ q('outerShape').value=b.dataset.shape; syncTemplateButtons(); draw();
+ document.querySelector('main')?.scrollIntoView({behavior:'smooth',block:'start'});
+}));
+q('outerShape').addEventListener('change',syncTemplateButtons);
+setTimeout(syncTemplateButtons,0);
+</script>\n<script>\n(function compactSections(){\n function run(){\n  const aside=document.querySelector('aside'); if(!aside) return;\n  const heads=[...aside.querySelectorAll(':scope > h3')];\n  heads.forEach((h,idx)=>{\n    if(h.closest('details')) return;\n    const d=document.createElement('details'); d.className='controlSection';\n    // Keep first text section open; export open so the main action is easy to find.\n    if(idx===0 || /export/i.test(h.textContent)) d.open=true;\n    const sum=document.createElement('summary'); sum.textContent=h.textContent.trim();\n    const body=document.createElement('div'); body.className='sectionBody';\n    h.parentNode.insertBefore(d,h); d.appendChild(sum); d.appendChild(body);\n    let n=h.nextSibling; h.remove();\n    while(n && !(n.nodeType===1 && (n.tagName==='H3' || n.classList?.contains('templateBox')))){\n      const next=n.nextSibling; body.appendChild(n); n=next;\n    }\n  });\n }\n if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();\n})();\n</script>\n
+<script>
+let lastRealAiIdea=null;
+(function(){
+  const saved=localStorage.getItem('plaque_ai_backend')||'https://plaque-designer-ai.andrew-0ef.workers.dev';
+  const el=document.getElementById('aiBackend'); if(el) el.value=saved;
+})();
+function aiBase(){
+  const el=document.getElementById('aiBackend');
+  const v=(el?.value||'').trim().replace(/\/$/,'');
+  if(!v) throw new Error('Paste your Cloudflare Worker URL first.');
+  localStorage.setItem('plaque_ai_backend',v);
+  return v;
+}
+function aiShow(v){
+  const el=document.getElementById('realAiResult'); if(!el)return;
+  el.style.display='block'; el.textContent=typeof v==='string'?v:JSON.stringify(v,null,2);
+}
+async function aiPost(path,body){
+  const r=await fetch(aiBase()+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json(); if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j;
+}
+function valAny(ids, fallback=''){
+  for(const id of ids){const e=document.getElementById(id); if(e && e.value) return e.value;}
+  return fallback;
+}
+async function realAiDesign(){
+  try{
+    aiShow('Creating design…');
+    const j=await aiPost('/api/design',{
+      theme:valAny(['aiTheme','theme'],'faith'),
+      style:valAny(['aiStyle','style'],'minimal'),
+      details:valAny(['aiDetails','details'],''),
+      shape:valAny(['outerShape'],'auto')
+    });
+    lastRealAiIdea=j; aiShow(j);
+    if(document.getElementById('txt')) document.getElementById('txt').value=j.main_wording||'';
+    if(document.getElementById('small')) document.getElementById('small').value=j.small_wording||'';
+    if(document.getElementById('verse')) document.getElementById('verse').value=j.verse_or_reference||'';
+    if(document.getElementById('outerShape') && j.shape) document.getElementById('outerShape').value=j.shape;
+    if(typeof draw==='function') draw();
+  }catch(e){aiShow('AI error: '+e.message)}
+}
+async function realAiTrends(){
+  try{aiShow('Researching current craft trends…'); aiShow((await aiPost('/api/trends',{theme:valAny(['aiTheme','theme'],'current')})).text)}
+  catch(e){aiShow('AI error: '+e.message)}
+}
+async function realAiArtwork(){
+  try{
+    const prompt=lastRealAiIdea?.artwork_prompt||'minimal botanical line art suitable for laser engraving';
+    aiShow('Generating engraving artwork…');
+    const j=await aiPost('/api/artwork',{prompt});
+    const data=j.data_url;
+    // Feed generated PNG through the existing artwork pipeline where possible.
+    const res=await fetch(data); const blob=await res.blob();
+    const file=new File([blob],'ai-engraving.png',{type:'image/png'});
+    const input=document.getElementById('art');
+    if(input){
+      const dt=new DataTransfer(); dt.items.add(file); input.files=dt.files;
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+      aiShow('Artwork generated and loaded into the plaque artwork control.');
+    } else aiShow('Artwork generated. This demo has no artwork input to receive it.');
+  }catch(e){aiShow('AI error: '+e.message)}
+}
+</script>
+</body></html>

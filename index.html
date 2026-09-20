@@ -166,7 +166,7 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V51 Exact Preview + Saved Jobs</button>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V52 Exact Preview + Saved Jobs</button>
 <div style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
   <button type="button" id="oneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px">☁️ Save Laser Job to OneDrive</button>
   <div id="oneDriveStatus" class="note" style="margin-top:7px"><b>OneDrive destination:</b> your selected Laser Jobs folder. First use opens Microsoft sign-in in this tab, then returns here automatically and finishes the save.</div>
@@ -190,19 +190,19 @@ Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 
   </div>
   <div id="savedJobsStatus" class="note" style="margin-top:8px">Sign in to Microsoft using the OneDrive save button to load your saved jobs.</div>
   <div id="savedJobsList" style="margin-top:8px"></div>
-  <div class="note" style="margin-top:10px;text-align:center"><b>Laser Plaque Designer • V51</b></div>
+  <div class="note" style="margin-top:10px;text-align:center"><b>Laser Plaque Designer • V52</b></div>
 </div>
 
-<div class="note" style="margin-top:8px"><b>V51:</b> V47 laser geometry preserved exactly; OneDrive sign-in uses iPad-safe Microsoft redirect authentication and saves directly to Business → Laser engraving → Laser Jobs. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<div class="note" style="margin-top:8px"><b>V52:</b> V47 laser geometry preserved exactly; OneDrive sign-in uses iPad-safe Microsoft redirect authentication and saves directly to Business → Laser engraving → Laser Jobs. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>V51:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
+<p class="note"><b>V52:</b> Exact Laser Layout uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Embedded raster artwork now includes both modern href and legacy xlink:href references for improved SVG/Falcon compatibility. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
 </aside><main>
 <div id="topOneDriveBar" style="margin:0 0 10px;padding:10px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
   <button type="button" id="topOneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px;margin-top:0">☁️ Save Laser Job to OneDrive</button>
   <div id="topOneDriveStatus" class="note" style="margin-top:5px;text-align:center"><b>OneDrive:</b> Business → Laser engraving → Laser Jobs</div>
 </div>
-<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V51</div>
+<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V52</div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
@@ -265,7 +265,7 @@ function rebuildArtwork(){
  if(artSource.type==='raster'){
    const sc=cover?Math.max(target/artSource.w,target/artSource.h):Math.min(target/artSource.w,target/artSource.h);
    const w=artSource.w*sc, h=artSource.h*sc;
-   artwork=`<image href="${artSource.data}" x="${75-w/2}" y="${75-h/2}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
+   artwork=`<image href="${artSource.data}" xlink:href="${artSource.data}" x="${75-w/2}" y="${75-h/2}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
  }else{
    const [vx,vy,vw,vh]=artSource.vb;
    const sc=cover?Math.max(target/vw,target/vh):Math.min(target/vw,target/vh);
@@ -354,7 +354,7 @@ let drawGeneration=0;
 function setMode(next){
  mode=next;
  const b=q('modeBadge');
- if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V51 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V51');
+ if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V52 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V52');
  const a=q('tabAssembled'), p=q('tabParts');
  if(a) a.style.fontWeight=mode==='assembled'?'800':'400';
  if(p) p.style.fontWeight=mode==='parts'?'800':'400';
@@ -478,7 +478,7 @@ async function previewCleanedArtwork(){
  try{
    const data=await makeCircularRasterDataURL();
    const old=artwork;
-   artwork=`<image href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
+   artwork=`<image href="${data}" xlink:href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
    draw();
    q('cleanStatus').textContent='Showing cleaned artwork. Re-upload or change settings and preview again to refresh.';
  }catch(e){q('cleanStatus').textContent='Could not process preview: '+e.message;}
@@ -535,7 +535,7 @@ async function exportArtForLaser(){
  if(!artSource) return '';
  if(artSource.type==='raster'){
    const data=await makeCircularRasterDataURL();
-   return `<image href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
+   return `<image href="${data}" xlink:href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
  }
  // SVG artwork can remain vector, but flatten the visible frame using the normal SVG clip.
  return artGroup(75,75);
@@ -774,9 +774,9 @@ async function buildSideBySideLaserSVG(){
    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         width="315mm" height="${150+loopExtra}mm"
         viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V51</title>
+     <title>${safeFileName(q('txt').value)} - Laser Plaque V52</title>
      <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V51",
+       version:"V52",
        layout:"cloned from rendered Exact Laser Layout including width-fit transform",
        cut:{speed_mm_min:cs,power_percent:cp},
        image_engrave:{speed_mm_min:is,power_percent:ip},
@@ -888,7 +888,7 @@ async function downloadPart(which){
  }
 }
 
-// ===== V51 OneDrive direct-save + Saved Laser Jobs browser =====
+// ===== V52 OneDrive direct-save + Saved Laser Jobs browser =====
 // Uses MSAL redirect authentication (not popups), which is more reliable on iPad/iPhone.
 // The shared folder URL contains no credentials. Microsoft Graph resolves it only after
 // the signed-in user grants delegated Files.ReadWrite permission.
@@ -1014,7 +1014,7 @@ function laserInstructionsText(jobName){
     `Small wording: ${q('small').value}\n`+
     `Verse/reference: ${q('verse').value}\n`+
     `Hanging loop: ${q('loopOn').checked?'ON':'OFF'}\n\n`+
-    `Generated by Laser Plaque Designer V51 (V47 geometry + iPad redirect + fixed Laser Jobs destination + saved jobs browser).\n`;
+    `Generated by Laser Plaque Designer V52 (V47 geometry + iPad redirect + fixed Laser Jobs destination + saved jobs browser).\n`;
 }
 
 async function putTextFile(driveId, folderId, filename, content, mime, token){
@@ -1111,7 +1111,7 @@ async function saveLaserJobToOneDrive(){
     if(!token) return; // redirect has started
 
     st.textContent='Opening Business / Laser engraving / Laser Jobs…';
-    // V51 uses the exact OneDrive for Business drive + folder IDs for the
+    // V52 uses the exact OneDrive for Business drive + folder IDs for the
     // permanent Laser Jobs folder. No anonymous sharing-link resolution is needed.
     const driveId=LASER_JOBS_DRIVE_ID;
     const rootFolderId=LASER_JOBS_FOLDER_ID;
@@ -1176,7 +1176,7 @@ async function bootstrapOneDriveRedirect(){
 
 window.addEventListener('DOMContentLoaded',()=>{
   initOneDriveUI();
-  // V51: mirror the detailed OneDrive status beside the always-visible top save button.
+  // V52: mirror the detailed OneDrive status beside the always-visible top save button.
 (function syncTopOneDriveStatus(){
   const source=q('oneDriveStatus'), target=q('topOneDriveStatus');
   if(!source||!target) return;

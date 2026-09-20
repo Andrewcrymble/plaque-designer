@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><title>3-Part Laser Plaque Designer</title>
+<!doctype html><html><head><meta charset="utf-8"><title>Master Laser Designer - Obvious Templates</title>
 <style>
 body{margin:0;font-family:Arial,sans-serif;background:#eee;color:#222}.app{display:grid;grid-template-columns:360px 1fr;min-height:100vh}
 aside{background:#fff;padding:18px;overflow:auto;box-shadow:2px 0 10px #aaa}main{padding:18px}
@@ -6,39 +6,57 @@ h2{margin-top:0}label{font-size:13px;font-weight:bold;display:block;margin-top:1
 input,select,button{width:100%;box-sizing:border-box;padding:7px;margin-top:3px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 button{margin-top:10px;cursor:pointer}.tabs{display:flex;gap:5px;margin-bottom:12px}.tabs button{margin:0}
 .preview{display:flex;justify-content:center}.preview svg{width:min(72vh,72vw);background:#fff;box-shadow:0 2px 12px #aaa}
-.note{font-size:12px;color:#666}.cut{stroke:#e00000;fill:none}.engrave{stroke:#111;fill:none}.letter{stroke:#1261d6;fill:none}.draggable{cursor:move;touch-action:none}.selected{filter:drop-shadow(0 0 1px #000)} .laser-word{font-kerning:normal}
-#svg{touch-action:none;-webkit-user-select:none;user-select:none}
-@media (max-width:900px){
- body{background:#f3f3f3}
- .app{display:flex;flex-direction:column;min-height:100vh}
- aside{order:2;width:auto;overflow:visible;box-shadow:none;padding:14px}
- main{order:1;padding:10px;position:sticky;top:0;z-index:10;background:#eee;border-bottom:1px solid #bbb}
- .preview svg{width:min(96vw,620px);max-height:48vh}
- input,select,button{font-size:16px;min-height:44px}
- input[type="checkbox"]{min-height:auto}
- .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
- .tabs button{min-width:130px}
- .row{gap:10px}
-}
-@media (max-width:600px){
- .row{grid-template-columns:1fr}
- .preview svg{width:96vw;max-height:42vh}
- aside{padding:12px}
-}
-</style>
-<script type="module">
-  import { PublicClientApplication } from "https://cdn.jsdelivr.net/npm/@azure/msal-browser@5/+esm";
-  window.MSALPublicClientApplication = PublicClientApplication;
-  window.dispatchEvent(new Event('msal-ready'));
-</script></head><body><div class="app"><aside>
-<h2>2-Part Side-by-Side Laser Plaque Designer</h2><div class='note'><b>Independent text controls:</b> the raised wording, small wording and verse can each use a different font and letter size.</div>
-<div class="note"><b>iPad compatible:</b> In Assembled Preview, drag the main text, small text, verse and imported artwork directly with your finger, Apple Pencil or mouse.<br><br>Laser output is one side-by-side SVG: the LEFT back plate contains its outside cut plus image/reference engraving; the RIGHT front sheet contains the integrated ring/tab/hole, inner-circle cut and both wording cuts.</div>
+.note{font-size:12px;color:#666}.cut{stroke:#e00000;fill:none}.engrave{stroke:#111;fill:none}.letter{stroke:#1261d6;fill:none}.draggable{cursor:move}.selected{filter:drop-shadow(0 0 1px #000)}
+
+.templateBox{border:3px solid #1769aa;background:#f4faff;border-radius:10px;padding:12px;margin:14px 0 18px;box-shadow:0 2px 8px #bbb}
+.templateTitle{font-size:19px;font-weight:800;color:#0d4f83;margin-bottom:5px}.templateHelp{font-size:13px;margin-bottom:10px}
+.shapeGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.shapeGrid button{height:66px;margin:0;background:white;border:2px solid #b9cddd;border-radius:8px;font-size:27px;padding:4px;color:#222}.shapeGrid button span{display:block;font-size:11px;font-weight:700;margin-top:2px}.shapeGrid button.active{border:3px solid #e00000;background:#fff3f3;color:#b00000}
+.templateSelected{margin-top:10px;padding:9px;background:#1769aa;color:white;text-align:center;border-radius:6px;font-size:13px;letter-spacing:.3px}
+
+/* V35 compact workspace */
+aside{width:auto} .app{grid-template-columns:410px 1fr}
+.compactIntro{background:#16202a;color:white;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.compactIntro b{font-size:16px}.compactIntro .note{color:#dfe8ef;margin-top:3px}
+details.controlSection{background:#fff;border:1px solid #d5dce3;border-radius:9px;margin:8px 0;overflow:hidden}
+details.controlSection>summary{cursor:pointer;padding:11px 12px;font-weight:800;background:#f5f7f9;list-style:none;user-select:none}
+details.controlSection>summary::-webkit-details-marker{display:none}
+details.controlSection>summary:after{content:'＋';float:right;font-size:18px;line-height:14px}
+details.controlSection[open]>summary:after{content:'−'}
+details.controlSection>.sectionBody{padding:0 12px 12px}
+.quickBar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 12px}.quickBar button{margin:0}
+.templateBox{margin-top:8px}.shapeGrid{grid-template-columns:repeat(5,1fr)}.shapeGrid button{height:54px;font-size:22px}.shapeGrid button span{font-size:9px}
+@media(max-width:900px){.app{display:flex}.shapeGrid{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:600px){.shapeGrid{grid-template-columns:repeat(3,1fr)}}
+</style></head><body><div class="app"><aside><div class="compactIntro"><b>Laser Plaque Designer</b><div class="note">Choose a template, edit the design, then download one Falcon-ready side-by-side SVG.</div></div><div class="quickBar"><button type="button" onclick="setTab(0)">Assembled Preview</button><button type="button" onclick="setTab(1)">2-Part Preview</button></div>
+<h2>Master Laser Plaque Designer</h2><div class='note'><b>Independent text controls:</b> the raised wording, small wording and verse can each use a different font and letter size.</div>
+<div class="note"><b>NEW:</b> In Assembled Preview, drag the main text, small text, verse and imported artwork directly with your mouse.<br><br>Laser output is one side-by-side SVG: the LEFT back plate contains its outside cut plus image/reference engraving; the RIGHT front sheet contains the integrated ring/tab/hole, inner-circle cut and both wording cuts.</div>
+<section class="templateBox">
+<div class="templateTitle">① CHOOSE YOUR TEMPLATE / SHAPE</div>
+<div class="templateHelp">Click a shape below. This changes the <b>actual plaque you edit</b> and the final side-by-side laser SVG.</div>
+<div class="shapeGrid">
+<button type="button" data-shape="circle">◯<span>Circle</span></button>
+<button type="button" data-shape="oval">⬭<span>Oval</span></button>
+<button type="button" data-shape="clipped">⬡<span>Clipped Corner</span></button>
+<button type="button" data-shape="rounded">▢<span>Rounded Rectangle</span></button>
+<button type="button" data-shape="arch">⌂<span>Arch</span></button>
+<button type="button" data-shape="ornamental">✥<span>Ornamental</span></button>
+<button type="button" data-shape="heart">♥<span>Heart</span></button>
+<button type="button" data-shape="shield">♢<span>Shield</span></button>
+<button type="button" data-shape="bauble">◉<span>Christmas Bauble</span></button>
+<button type="button" data-shape="tree">♠<span>Christmas Tree</span></button>
+</div>
+<div class="row"><div><label>Selected template</label><select id="outerShape">
+<option value="circle" selected>Circle</option><option value="oval">Oval</option><option value="clipped">Clipped Corner</option><option value="rounded">Rounded Rectangle</option><option value="arch">Arch</option><option value="ornamental">Ornamental</option><option value="heart">Heart</option><option value="shield">Shield</option><option value="bauble">Christmas Bauble</option><option value="tree">Christmas Tree</option></select></div>
+<div><label>Frame inset (mm)</label><input id="frameInset" type="number" min="3" max="30" step="0.5" value="7.5"></div></div>
+<div class="row"><div><label>Width (mm)</label><input id="shapeW" type="number" min="60" max="300" value="150"></div><div><label>Height (mm)</label><input id="shapeH" type="number" min="60" max="300" value="150"></div></div>
+<div class="templateSelected">CURRENT TEMPLATE: <b id="currentTemplateName">Circle</b></div>
+</section>
 <label>Main wording</label><input id="txt" value="Be Still">
 <label>Small wording</label><input id="small" value="& KNOW">
 <label>Verse/reference</label><input id="verse" value="PSALM 46:10">
 <h3 style="margin-bottom:4px">Big raised lettering</h3>
 <label>Font</label><select id="font"><optgroup label="Script / Calligraphy">
-<option value="Brush Script MT, Snell Roundhand, cursive">Brush Script / iPad Script</option>
+<option value="Brush Script MT">Brush Script MT</option>
 <option value="Segoe Script">Segoe Script</option>
 <option value="Lucida Handwriting">Lucida Handwriting</option>
 <option value="Edwardian Script ITC">Edwardian Script ITC</option>
@@ -67,7 +85,7 @@ button{margin-top:10px;cursor:pointer}.tabs{display:flex;gap:5px;margin-bottom:1
 
 <h3 style="margin-bottom:4px">Small wording</h3>
 <label>Font</label><select id="font2"><optgroup label="Script / Calligraphy">
-<option value="Brush Script MT, Snell Roundhand, cursive">Brush Script / iPad Script</option>
+<option value="Brush Script MT">Brush Script MT</option>
 <option value="Segoe Script">Segoe Script</option>
 <option value="Lucida Handwriting">Lucida Handwriting</option>
 <option value="Edwardian Script ITC">Edwardian Script ITC</option>
@@ -94,7 +112,7 @@ button{margin-top:10px;cursor:pointer}.tabs{display:flex;gap:5px;margin-bottom:1
 </optgroup></select>
 <div class="row"><div><label>Letter size</label><input id="ss" type="number" min="1" step=".5" value="40"></div><div><label>Y position</label><input id="sy" type="number" value="102"></div></div>
 
-<div class="note" style="margin-top:5px">Default script uses Brush Script MT on Windows and Snell Roundhand on iPad. Text is automatically constrained so it cannot overflow the 135 mm working area.</div>
+<div class="note" style="margin-top:5px">Fonts shown depend on fonts installed on this computer. Script fonts are grouped at the top.</div>
 <label>Or type an installed font name</label><input id="customFont" placeholder="e.g. Great Vibes, Samantha, Magnolia Sky">
 <button type="button" onclick="applyCustomFont()">Use for main wording</button>
 <label>Custom small-wording font</label><input id="customFont2" placeholder="Type any installed font name">
@@ -102,16 +120,16 @@ button{margin-top:10px;cursor:pointer}.tabs{display:flex;gap:5px;margin-bottom:1
 <h3 style="margin-bottom:4px">Verse / reference</h3>
 <label>Font</label><select id="font3">
 <option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option>
-<option value="Segoe Script">Segoe Script</option><option value="Brush Script MT, Snell Roundhand, cursive">Brush Script / iPad Script</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Courier New" selected>Courier New</option>
+<option value="Segoe Script">Segoe Script</option><option value="Brush Script MT">Brush Script MT</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Courier New" selected>Courier New</option>
 </select>
 <div class="row"><div><label>Letter size</label><input id="vs" type="number" min="1" step=".5" value="10"></div><div><label>Y position</label><input id="vy" type="number" value="133"></div></div>
-<h3 style="margin-bottom:4px">Outer-ring hanging loop</h3>
-<label><input id="loopOn" type="checkbox" checked style="width:auto"> Add hanging loop at top</label><div class="note"><b>Loop ON by default.</b> It appears on the front ring in both the assembled and 2-parts previews and is included in the ring SVG export.</div>
-<div class="row"><div><label>Loop outside width (mm)</label><input id="loopW" type="number" min="8" max="40" step="1" value="20"></div>
-<div><label>Loop height (mm)</label><input id="loopH" type="number" min="6" max="30" step="1" value="14"></div></div>
+<h3 style="margin-bottom:4px">Back-plate hanging tag</h3>
+<label><input id="loopOn" type="checkbox" checked style="width:auto"> Add hanging tag to BACK plate</label><div class="note"><b>Tag ON by default.</b> Available for every template. It is placed on the BACK plate only; the front frame has no hanging tag.</div>
+<div class="row"><div><label>Tag outside width (mm)</label><input id="loopW" type="number" min="8" max="40" step="1" value="20"></div>
+<div><label>Tag height (mm)</label><input id="loopH" type="number" min="6" max="30" step="1" value="14"></div></div>
 <div class="row"><div><label>Hanging hole diameter (mm)</label><input id="holeD" type="number" min="2" max="15" step=".5" value="6"></div>
-<div><label>Loop position</label><input id="loopX" type="number" min="-50" max="50" step="1" value="0"></div></div>
-<div class="note">The loop is physically integrated into the FRONT OUTER RING. The laser follows one continuous outer perimeter around the circle and loop, so the loop remains attached. The hanging hole is a separate internal cut.</div>
+<div><label>Tag position</label><input id="loopX" type="number" min="-50" max="50" step="1" value="0"></div></div>
+<div class="note">The hanging tag belongs to the BACK plate only. The front frame remains clean with no tag. The hanging hole is a separate red CUT.</div>
 <h3 style="margin-bottom:4px">Preview colours</h3>
 <div class="note">These colours are visual only and do not alter the laser cut/engrave instructions.</div>
 <div class="row"><div><label>Back plate</label><input id="cBack" type="color" value="#e5c58e"></div>
@@ -153,63 +171,31 @@ button{margin-top:10px;cursor:pointer}.tabs{display:flex;gap:5px;margin-bottom:1
 <h3 style="margin-bottom:4px">Laser-ready side-by-side export</h3><div class="note"><b>Defaults:</b> Main wording 40, small wording 40, verse Courier 10 at Y 133. Verse is red in the design preview; in the laser export it is automatically converted to BLACK because BLACK = ENGRAVE.</div>
 <div class="note">
 <b>LEFT PART — BACK PLATE</b><br>
-• 150 mm outside circle = CUT<br>
+• Selected outside shape = CUT<br>• Optional hanging tag + hole on BACK plate = CUT<br>
 • Reference / verse = ENGRAVE<br>
 • Background image = ENGRAVE<br><br>
 <b>RIGHT PART — FRONT RING + WORDING</b><br>
-• Outside circle + integrated hanging tab = CUT<br>
+• Matching selected outer shape = CUT<br>
 • Hole in hanging tab = CUT<br>
-• 135 mm inside circle = CUT<br>
+• Matching inset opening = CUT<br>
 • Main wording = CUT<br>
 • Small wording = CUT<br><br>
 Both physical parts are positioned side by side in the same SVG. The downloaded filename is automatically taken from the <b>Main wording</b>.<br><br>
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V52 Exact Preview + Saved Jobs</button>
-<div style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
-  <button type="button" id="oneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px">☁️ Save Laser Job to OneDrive</button>
-  <div id="oneDriveStatus" class="note" style="margin-top:7px"><b>OneDrive destination:</b> your selected Laser Jobs folder. First use opens Microsoft sign-in in this tab, then returns here automatically and finishes the save.</div>
-  <details style="margin-top:8px">
-    <summary style="cursor:pointer;font-size:13px;font-weight:bold">OneDrive setup</summary>
-    <label>Microsoft Application (Client) ID</label>
-    <input id="msClientId" placeholder="Paste Client ID from Microsoft Entra app registration">
-    <label>Redirect URL to register in Microsoft Entra</label>
-    <input id="msRedirectUri" readonly>
-    <button type="button" onclick="saveMicrosoftSetup()">Save Microsoft setup on this device</button>
-    <div class="note">The Client ID is not a password or secret. Do not put a client secret in this page. Register this page as a <b>Single-page application (SPA)</b> and grant delegated <b>Files.ReadWrite</b> permission.</div>
-  </details>
-</div>
-
-<div id="savedJobsPanel" style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#fff">
-  <div style="font-size:16px;font-weight:800;margin-bottom:4px">☁️ Saved Laser Jobs</div>
-  <div class="note" style="margin-bottom:8px">Automatically lists plaque jobs saved in <b>Business → Laser engraving → Laser Jobs</b>.</div>
-  <div class="row">
-    <button type="button" id="refreshJobsBtn" onclick="refreshSavedLaserJobs(true)">↻ Refresh saved jobs</button>
-    <button type="button" onclick="openLaserJobsFolder()">📁 Open Laser Jobs folder</button>
-  </div>
-  <div id="savedJobsStatus" class="note" style="margin-top:8px">Sign in to Microsoft using the OneDrive save button to load your saved jobs.</div>
-  <div id="savedJobsList" style="margin-top:8px"></div>
-  <div class="note" style="margin-top:10px;text-align:center"><b>Laser Plaque Designer • V52</b></div>
-</div>
-
-<div class="note" style="margin-top:8px"><b>V52:</b> V47 laser geometry preserved exactly; OneDrive sign-in uses iPad-safe Microsoft redirect authentication and saves directly to Business → Laser engraving → Laser Jobs. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
-<div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG</button>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
-<p class="note"><b>V52:</b> Exact Laser Layout uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Embedded raster artwork now includes both modern href and legacy xlink:href references for improved SVG/Falcon compatibility. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
+<p class="note"><b>Important:</b> browser fonts depend on fonts installed on your computer. For guaranteed identical lettering on another computer, text should eventually be converted to vector paths.</p>
 </aside><main>
-<div id="topOneDriveBar" style="margin:0 0 10px;padding:10px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
-  <button type="button" id="topOneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px;margin-top:0">☁️ Save Laser Job to OneDrive</button>
-  <div id="topOneDriveStatus" class="note" style="margin-top:5px;text-align:center"><b>OneDrive:</b> Business → Laser engraving → Laser Jobs</div>
-</div>
-<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V52</div>
+<div class="tabs"><button onclick="mode='assembled';draw()">Assembled Preview</button><button onclick="mode='parts';draw()">Side-by-Side Parts</button></div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
 let mode='assembled', artwork='', artSource=null;
 let customMainFont='', customSmallFont='';
 const q=x=>document.getElementById(x);
-['txt','small','verse','font','font2','font3','fs','ss','vs','as','ao','artFit','artCentreMode','artX','artY','cBack','cRing','cMain','cSmall','cVerse','cArt','loopOn','loopW','loopH','holeD','loopX'].forEach(x=>q(x).addEventListener('input',draw));
+['txt','small','verse','font','font2','font3','fs','ss','vs','as','ao','artFit','artCentreMode','artX','artY','cBack','cRing','cMain','cSmall','cVerse','cArt','loopOn','loopW','loopH','holeD','loopX','outerShape','frameInset','shapeW','shapeH'].forEach(x=>q(x).addEventListener('input',draw));
 q('font').addEventListener('change',()=>{customMainFont='';});
 q('font2').addEventListener('change',()=>{customSmallFont='';});
 function applyCustomFont(){customMainFont=q('customFont').value.trim();draw();}
@@ -265,7 +251,7 @@ function rebuildArtwork(){
  if(artSource.type==='raster'){
    const sc=cover?Math.max(target/artSource.w,target/artSource.h):Math.min(target/artSource.w,target/artSource.h);
    const w=artSource.w*sc, h=artSource.h*sc;
-   artwork=`<image href="${artSource.data}" xlink:href="${artSource.data}" x="${75-w/2}" y="${75-h/2}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
+   artwork=`<image href="${artSource.data}" x="${75-w/2}" y="${75-h/2}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
  }else{
    const [vx,vy,vw,vh]=artSource.vb;
    const sc=cover?Math.max(target/vw,target/vh):Math.min(target/vw,target/vh);
@@ -282,44 +268,35 @@ q('thresholdNum').addEventListener('input',()=>{q('threshold').value=q('threshol
 q('artX').addEventListener('input',()=>{q('artCentreMode').value='manual';});
 q('artY').addEventListener('input',()=>{q('artCentreMode').value='manual';});
 
+function shapePath(kind,x,y,w,h){
+ const cx=x+w/2, cy=y+h/2;
+ if(kind==='circle'){const r=Math.min(w,h)/2;return `M${cx-r},${cy} A${r},${r} 0 1 0 ${cx+r},${cy} A${r},${r} 0 1 0 ${cx-r},${cy} Z`;}
+ if(kind==='oval') return `M${x},${cy} A${w/2},${h/2} 0 1 0 ${x+w},${cy} A${w/2},${h/2} 0 1 0 ${x},${cy} Z`;
+ if(kind==='rounded'){const r=Math.min(w,h)*.1;return `M${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h-r}Q${x+w},${y+h} ${x+w-r},${y+h}H${x+r}Q${x},${y+h} ${x},${y+h-r}V${y+r}Q${x},${y} ${x+r},${y}Z`;}
+ if(kind==='clipped'){const c=Math.min(w,h)*.13;return `M${x+c},${y}H${x+w-c}L${x+w},${y+c}V${y+h-c}L${x+w-c},${y+h}H${x+c}L${x},${y+h-c}V${y+c}Z`;}
+ if(kind==='arch'){const r=Math.min(w/2,h*.55);return `M${x},${y+h}V${y+r}A${w/2},${r} 0 0 1 ${x+w},${y+r}V${y+h}Z`;}
+ if(kind==='heart') return `M${cx},${y+h}C${x+w*.12},${y+h*.7} ${x},${y+h*.4} ${x+w*.1},${y+h*.2}C${x+w*.2},${y} ${x+w*.42},${y} ${cx},${y+h*.2}C${x+w*.58},${y} ${x+w*.8},${y} ${x+w*.9},${y+h*.2}C${x+w},${y+h*.4} ${x+w*.88},${y+h*.7} ${cx},${y+h}Z`;
+ if(kind==='shield') return `M${x+w*.1},${y}H${x+w*.9}V${y+h*.45}C${x+w*.88},${y+h*.72} ${x+w*.68},${y+h*.9} ${cx},${y+h}C${x+w*.32},${y+h*.9} ${x+w*.12},${y+h*.72} ${x+w*.1},${y+h*.45}Z`;
+ if(kind==='ornamental') return `M${x+w*.16},${y}Q${x+w*.28},${y+h*.07} ${x+w*.38},${y}Q${cx},${y-h*.04} ${x+w*.62},${y}Q${x+w*.72},${y+h*.07} ${x+w*.84},${y}Q${x+w},${y+h*.1} ${x+w*.94},${y+h*.27}Q${x+w},${cy} ${x+w*.94},${y+h*.73}Q${x+w},${y+h*.9} ${x+w*.84},${y+h}Q${x+w*.72},${y+h*.93} ${x+w*.62},${y+h}Q${cx},${y+h*1.04} ${x+w*.38},${y+h}Q${x+w*.28},${y+h*.93} ${x+w*.16},${y+h}Q${x},${y+h*.9} ${x+w*.06},${y+h*.73}Q${x},${cy} ${x+w*.06},${y+h*.27}Q${x},${y+h*.1} ${x+w*.16},${y}Z`;
+ if(kind==='bauble'){const rr=Math.min(w,h*.82)/2, by=y+h*.16, ccx=cx, ccy=by+rr;return `M${ccx-rr},${ccy}A${rr},${rr} 0 1 0 ${ccx+rr},${ccy}A${rr},${rr} 0 1 0 ${ccx-rr},${ccy}Z M${cx-w*.12},${by}V${y+h*.06}H${cx+w*.12}V${by}Z`;}
+ if(kind==='tree') return `M${cx},${y}L${x+w*.68},${y+h*.3}H${x+w*.57}L${x+w*.78},${y+h*.58}H${x+w*.64}L${x+w*.88},${y+h*.86}H${x+w*.57}V${y+h}H${x+w*.43}V${y+h*.86}H${x+w*.12}L${x+w*.36},${y+h*.58}H${x+w*.22}L${x+w*.43},${y+h*.3}H${x+w*.32}Z`;
+ return shapePath('circle',x,y,w,h);
+}
+function shapeDims(){return {w:Math.max(60,+q('shapeW').value||150),h:Math.max(60,+q('shapeH').value||150),i:Math.max(3,+q('frameInset').value||7.5),k:q('outerShape').value};}
+function shapeEl(x,y,w,h,fill,stroke='#e00000',sw=.35){return `<path d="${shapePath(q('outerShape').value,x,y,w,h)}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;}
+function clipShapeDef(id,x,y,w,h){return `<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse"><path d="${shapePath(q('outerShape').value,x,y,w,h)}"/></clipPath></defs>`;}
 function artGroup(cx=75, cy=75){
- let ax=+q('artX').value||0, ay=+q('artY').value||0;
- let userScale=(+q('as').value||100)/100;
- let useBack=q('artCentreMode').value==='back';
- let diameter=useBack?150:135, radius=diameter/2;
- let clipId=`artCircle_${String(cx).replace('.','_')}_${String(cy).replace('.','_')}`;
- // Artwork is authored around source centre 75,75. This matrix maps that centre
- // directly to the selected circle centre, then applies only the user's X/Y offset.
+ let ax=+q('artX').value||0, ay=+q('artY').value||0, userScale=(+q('as').value||100)/100;
+ let d=shapeDims(), useBack=q('artCentreMode').value==='back', inset=useBack?0:d.i;
+ let x=cx-d.w/2+inset, y=cy-d.h/2+inset, w=d.w-2*inset, h=d.h-2*inset;
+ let clipId=`artShape_${String(cx).replace('.','_')}_${String(cy).replace('.','_')}`;
  let tx=(cx-75)+ax, ty=(cy-75)+ay;
- return `<defs>
-   <clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">
-     <circle cx="${cx}" cy="${cy}" r="${radius}"/>
-   </clipPath>
- </defs>
- <g clip-path="url(#${clipId})" opacity="${(+q('ao').value||100)/100}">
-   <g transform="translate(${tx} ${ty}) translate(75 75) scale(${userScale}) translate(-75 -75)">
-     ${artwork}
-   </g>
- </g>`;
+ return `${clipShapeDef(clipId,x,y,w,h)}<g clip-path="url(#${clipId})" opacity="${(+q('ao').value||100)/100}"><g transform="translate(${tx} ${ty}) translate(75 75) scale(${userScale}) translate(-75 -75)">${artwork}</g></g>`;
 }
-let pos={main:{x:75,y:73},small:{x:75,y:102},verse:{x:75,y:133},art:{x:0,y:0}};
-function lettering(cx=85){return `<g class="letter"><text id="drag-main" class="draggable laser-word" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}">${esc(q('txt').value)}</text></g>`}
-function engraving(cx=85,cy=85){return `<g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g><g class="engrave"><text id="drag-small" class="draggable laser-word" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text><text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}">${esc(q('verse').value)}</text></g>`}
+let pos={main:{x:85,y:73},small:{x:85,y:102},verse:{x:85,y:113},art:{x:0,y:0}};
+function lettering(cx=85){return `<g class="letter"><text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}">${esc(q('txt').value)}</text></g>`}
+function engraving(cx=85,cy=85){return `<g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g><g class="engrave"><text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text><text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}">${esc(q('verse').value)}</text></g>`}
 function esc(s){return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
-function fitTextToWidth(el,maxWidth=125){
- if(!el)return;
- el.removeAttribute('transform');
- try{
-   const b=el.getBBox();
-   if(b.width>maxWidth && b.width>0){
-     const x=parseFloat(el.getAttribute('x')||0);
-     const scale=maxWidth/b.width;
-     el.setAttribute('transform',`translate(${x} 0) scale(${scale} 1) translate(${-x} 0)`);
-   }
- }catch(e){}
-}
-function fitVisibleWords(){ /* V46: no secondary fitting; vectorizer is the single geometry source. */ }
-
 function ringOuterPath(cx=85, cy=85, r=75, preview=true){
  // One continuous outer cut path: circle -> left shoulder -> loop -> right shoulder -> circle.
  if(!q('loopOn').checked)
@@ -350,72 +327,36 @@ function loopSVG(cx=85, preview=true){
  // Kept for compatibility: now returns the integrated ring perimeter, not a separate tab.
  return ringOuterPath(cx, preview?85:75, 75, preview);
 }
-let drawGeneration=0;
-function setMode(next){
- mode=next;
- const b=q('modeBadge');
- if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V52 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V52');
- const a=q('tabAssembled'), p=q('tabParts');
- if(a) a.style.fontWeight=mode==='assembled'?'800':'400';
- if(p) p.style.fontWeight=mode==='parts'?'800':'400';
- draw();
+function backTagSVG(cx, topY, preview=true){
+ if(!q('loopOn').checked) return '';
+ let w=Math.max(8,+q('loopW').value||20), h=Math.max(6,+q('loopH').value||14);
+ let hd=Math.max(2,Math.min(w-4,+q('holeD').value||6)), dx=+q('loopX').value||0;
+ let x=cx+dx-w/2, y=topY-h+2;
+ let fill=preview?q('cBack').value:'none', stroke=preview?'#e00000':'#ff0000';
+ return `<path d="M ${x} ${topY+3} V ${y+h/2} A ${w/2} ${h/2} 0 0 1 ${x+w} ${y+h/2} V ${topY+3}" fill="${fill}" stroke="${stroke}" stroke-width=".35"/>
+ <circle cx="${cx+dx}" cy="${y+h/2}" r="${hd/2}" fill="${preview?'white':'none'}" stroke="${stroke}" stroke-width=".35"/>`;
 }
-async function draw(){
-const myGeneration=++drawGeneration;
-let s=q('svg');
-if(mode==='assembled') {
- const extra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
-  s.setAttribute('viewBox',`0 -${extra} 150 ${150+extra}`);
- // V46 WYSIWYG: visible wording/reference use the SAME traced vector geometry as laser export.
- const mainVec=await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x,pos.main.y,125,'engrave');
- const smallVec=await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x,pos.small.y,125,'engrave');
- const verseVec=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x,pos.verse.y,125,'engrave');
- if(myGeneration!==drawGeneration || mode!=='assembled') return;
- const recolor=(v,c)=>v.replaceAll('#000000',c).replaceAll('#000',c);
- s.innerHTML=`<circle cx="75" cy="75" r="74.9" fill="${q('cBack').value}" stroke="#e00000" stroke-width=".25"/>
- ${ringOuterPath(75,75,74.9,true)}
- <circle cx="75" cy="75" r="67.5" fill="#ffffff" stroke="#e00000" stroke-width=".25"/>
- <g style="color:${q('cArt').value}" stroke="${q('cArt').value}">${artGroup(75,75)}</g>
- <g id="ASSEMBLED_EXACT_VECTORS">${recolor(mainVec,q('cMain').value)}${recolor(smallVec,q('cSmall').value)}${recolor(verseVec,q('cVerse').value)}</g>
- <!-- Invisible live-text drag handles preserve iPad dragging while visible geometry is export-exact. -->
- <g opacity="0.001" pointer-events="all">
-    <text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}">${esc(q('txt').value)}</text>
-    <text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text>
-    <text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}">${esc(q('verse').value)}</text>
-  </g>`;
- let ar=s.querySelector('#drag-art'); if(ar){ar.setAttribute('stroke',q('cArt').value);ar.setAttribute('color',q('cArt').value)}
-}
-else {
- // V46 EXACT LASER LAYOUT: render the ACTUAL laser-output geometry.
- // No decorative fills and no live text. What is shown here is what is downloaded.
- const rightX=165;
- const extra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
- s.setAttribute('viewBox',`0 -${extra} 315 ${150+extra}`);
-
- const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x,pos.main.y,125,'cut'))
-   +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x,pos.small.y,125,'cut'));
- const versePath=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x,pos.verse.y,125,'engrave');
- const laserArt=await exportArtForLaser();
- if(myGeneration!==drawGeneration || mode!=='parts') return;
- const ring=(ringOuterPath(75,75,74.9,false)
-   + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
-   .replaceAll('#e00000','#ff0000');
-
- s.innerHTML=`
-   <g id="EXACT_LEFT_BACK">
-     <circle cx="75" cy="75" r="74.9" fill="none" stroke="#ff0000" stroke-width=".25"/>
-     <g id="EXACT_IMAGE_ENGRAVE">${laserArt}</g>
-     <g id="EXACT_REFERENCE_ENGRAVE">${versePath}</g>
-   </g>
-   <g id="EXACT_RIGHT_FRONT" transform="translate(${rightX} 0)">
-     ${ring}
-     ${cutWords}
-   </g>`;
-}
- fitVisibleWords();
+function draw(){
+ let s=q('svg'), d=shapeDims(), pad=20, cx=pad+d.w/2, cy=pad+d.h/2, inset=d.i;
+ // Keep draggable text in sensible place when first switching from the original circle.
+ if(!pos._shapeInit){pos.main.x=cx;pos.small.x=cx;pos.verse.x=cx;pos.main.y=cy-2;pos.small.y=cy+27;pos.verse.y=cy+d.h/2-17;pos._shapeInit=true;}
+ if(mode==='assembled'){
+   s.setAttribute('viewBox',`0 0 ${d.w+pad*2} ${d.h+pad*2}`);
+   s.innerHTML=`${backTagSVG(cx,pad,true)}${shapeEl(pad,pad,d.w,d.h,q('cBack').value)}
+    ${shapeEl(pad,pad,d.w,d.h,q('cRing').value)}
+    ${shapeEl(pad+inset,pad+inset,d.w-2*inset,d.h-2*inset,'#fff')}
+    <g style="color:${q('cArt').value}" stroke="${q('cArt').value}"><g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g></g>
+    <text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text>
+    <text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="${q('cMain').value}">${esc(q('txt').value)}</text>
+    <text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="${q('cSmall').value}">${esc(q('small').value)}</text>`;
+ }else{
+   let gap=20, total=d.w*2+gap+pad*2, right=pad+d.w+gap;
+   s.setAttribute('viewBox',`0 0 ${total} ${d.h+pad*2}`);
+   s.innerHTML=`<g>${backTagSVG(cx,pad,true)}${shapeEl(pad,pad,d.w,d.h,q('cBack').value)}<g style="color:${q('cArt').value}">${artGroup(cx,cy)}</g><text x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text></g>
+   <g transform="translate(${right-pad} 0)">${shapeEl(pad,pad,d.w,d.h,q('cRing').value)}${shapeEl(pad+inset,pad+inset,d.w-2*inset,d.h-2*inset,'#fff')}<text x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="${q('cMain').value}">${esc(q('txt').value)}</text><text x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="${q('cSmall').value}">${esc(q('small').value)}</text></g>`;
+ }
  attachDrag();
 }
-
 function resetColours(){
  q('cBack').value='#e5c58e'; q('cRing').value='#2d72b8'; q('cMain').value='#2d72b8';
  q('cSmall').value='#222222'; q('cVerse').value='#222222'; q('cArt').value='#555555'; draw();
@@ -436,7 +377,6 @@ function attachDrag(){
 }
 q('svg').addEventListener('pointermove',e=>{
  if(!drag)return;
- e.preventDefault();
  let p=svgPoint(e), dx=p.x-start.x, dy=p.y-start.y; start=p;
  if(drag.key==='art'){
    q('artCentreMode').value='manual';
@@ -446,7 +386,6 @@ q('svg').addEventListener('pointermove',e=>{
  draw();
 });
 window.addEventListener('pointerup',()=>{drag=null;});
-window.addEventListener('pointercancel',()=>{drag=null;});
 
 function triggerDownload(content, filename){
  const blob=new Blob([content],{type:'image/svg+xml;charset=utf-8'});
@@ -478,7 +417,7 @@ async function previewCleanedArtwork(){
  try{
    const data=await makeCircularRasterDataURL();
    const old=artwork;
-   artwork=`<image href="${data}" xlink:href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
+   artwork=`<image href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
    draw();
    q('cleanStatus').textContent='Showing cleaned artwork. Re-upload or change settings and preview again to refresh.';
  }catch(e){q('cleanStatus').textContent='Could not process preview: '+e.message;}
@@ -535,7 +474,7 @@ async function exportArtForLaser(){
  if(!artSource) return '';
  if(artSource.type==='raster'){
    const data=await makeCircularRasterDataURL();
-   return `<image href="${data}" xlink:href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
+   return `<image href="${data}" x="0" y="0" width="150" height="150" preserveAspectRatio="none"/>`;
  }
  // SVG artwork can remain vector, but flatten the visible frame using the normal SVG clip.
  return artGroup(75,75);
@@ -544,20 +483,13 @@ function exportArt(cx=75){
  return artGroup(cx,75);
 }
 function exportVerse(cx=75){
- let vx=pos.verse.x;
+ let vx=pos.verse.x-10;
  return `<text x="${vx}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="none" stroke="#000">${esc(q('verse').value)}</text>`;
 }
 function exportCutWords(cx=75){
- let mx=pos.main.x, sx=pos.small.x;
- const mainFont=customMainFont||q('font').value;
- const smallFont=customSmallFont||q('font2').value;
- const mainText=esc(q('txt').value), smallText=esc(q('small').value);
- const mainEst=q('txt').value.length*(+q('fs').value)*0.58;
- const smallEst=q('small').value.length*(+q('ss').value)*0.58;
- const mainFit=mainEst>125 ? ` textLength="125" lengthAdjust="spacingAndGlyphs"` : '';
- const smallFit=smallEst>125 ? ` textLength="125" lengthAdjust="spacingAndGlyphs"` : '';
- return `<text x="${mx}" y="${pos.main.y}" text-anchor="middle" font-family="${mainFont}" font-size="${q('fs').value}" fill="none" stroke="#1261d6"${mainFit}>${mainText}</text>
- <text x="${sx}" y="${pos.small.y}" text-anchor="middle" font-family="${smallFont}" font-size="${q('ss').value}" fill="none" stroke="#1261d6"${smallFit}>${smallText}</text>`;
+ let mx=pos.main.x-10, sx=pos.small.x-10;
+ return `<text x="${mx}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#1261d6">${esc(q('txt').value)}</text>
+ <text x="${sx}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#1261d6">${esc(q('small').value)}</text>`;
 }
 
 
@@ -568,249 +500,29 @@ function safeFileName(v){
    .substring(0,80) || 'Plaque';
 }
 
-
-function canvasFontFamily(fontFamily){
-  // SVG accepts unquoted font stacks such as "Brush Script MT, Snell Roundhand, cursive".
-  // Canvas font shorthand needs family names containing spaces quoted individually.
-  return String(fontFamily||'serif').split(',').map(v=>{
-    v=v.trim();
-    if(!v) return '';
-    if(/^(serif|sans-serif|cursive|fantasy|monospace|system-ui)$/i.test(v)) return v;
-    return `"${v.replaceAll('"','')}"`;
-  }).filter(Boolean).join(', ');
-}
-
-async function freezeTextToPNG(text, fontFamily, fontSizeMm, fill, maxWidthMm=null){
-  // Render with THIS browser's resolved font and preserve the SVG text baseline exactly.
-  // This prevents another SVG program substituting Times/Arial and changing size/position.
-  if(document.fonts && document.fonts.ready) await document.fonts.ready;
-  const pxPerMm=10;
-  const fsPx=fontSizeMm*pxPerMm;
-  const family=canvasFontFamily(fontFamily);
-  const probe=document.createElement('canvas').getContext('2d');
-  probe.font=`${fsPx}px ${family}`;
-  const m=probe.measureText(text);
-  const left=Math.max(0,m.actualBoundingBoxLeft||0);
-  const right=Math.max(1,m.actualBoundingBoxRight||m.width||1);
-  const ascent=Math.max(1,m.actualBoundingBoxAscent||fsPx*.8);
-  const descent=Math.max(1,m.actualBoundingBoxDescent||fsPx*.25);
-  const contentW=left+right;
-  const contentH=ascent+descent;
-  const padPx=12;
-  const canvas=document.createElement('canvas');
-  canvas.width=Math.ceil(contentW+padPx*2);
-  canvas.height=Math.ceil(contentH+padPx*2);
-  const c=canvas.getContext('2d');
-  c.clearRect(0,0,canvas.width,canvas.height);
-  c.font=`${fsPx}px ${family}`;
-  c.textAlign='left';
-  c.textBaseline='alphabetic';
-  c.fillStyle=fill;
-  c.fillText(text,padPx+left,padPx+ascent);
-  const naturalContentMm=contentW/pxPerMm;
-  const scaleX=maxWidthMm && naturalContentMm>maxWidthMm ? maxWidthMm/naturalContentMm : 1;
-  return {
-    url:canvas.toDataURL('image/png'),
-    widthMm:(canvas.width/pxPerMm)*scaleX,
-    heightMm:canvas.height/pxPerMm,
-    // Offsets from SVG text anchor centre/baseline to image top-left.
-    xOffsetMm:-(canvas.width/pxPerMm)*scaleX/2,
-    yOffsetMm:-(padPx+ascent)/pxPerMm
-  };
-}
-
-
-function exactRenderedCutWords(){
-  // Temporarily render the exact laser layout so we can copy the browser-resolved
-  // SVG text attributes, including the fitVisibleWords() horizontal scaling transform.
-  const oldMode=mode;
-  mode='parts';
-  draw();
-  const root=q('svg');
-  const m=root.querySelector('#drag-main');
-  const sm=root.querySelector('#drag-small');
-
-  function cloneForCut(el){
-    if(!el) return '';
-    const c=el.cloneNode(true);
-    c.removeAttribute('id');
-    c.removeAttribute('class');
-    c.removeAttribute('data-key');
-    c.setAttribute('fill','none');
-    c.setAttribute('stroke','#ff0000');
-    c.setAttribute('stroke-width','.25');
-    return new XMLSerializer().serializeToString(c);
-  }
-
-  const out=cloneForCut(m)+cloneForCut(sm);
-  mode=oldMode;
-  draw();
-  return out;
-}
-
-
-function simplifyLoop(points){
-  if(points.length<4) return points;
-  // Remove points that are exactly collinear on the pixel boundary grid.
-  let a=[];
-  for(let i=0;i<points.length;i++){
-    const p0=points[(i-1+points.length)%points.length], p=points[i], p1=points[(i+1)%points.length];
-    if((p.x-p0.x)*(p1.y-p.y)===(p.y-p0.y)*(p1.x-p.x)) continue;
-    a.push(p);
-  }
-  return a.length>=3?a:points;
-}
-
-async function vectorizeBrowserText(text,fontFamily,fontSizeMm,xMm,yMm,maxWidthMm,mode='cut'){
-  if(!text) return '';
-  if(document.fonts && document.fonts.ready) await document.fonts.ready;
-
-  // Render exactly as the designer does, then trace the rendered silhouette.
-  // The tracer uses a multi-edge graph (not one edge per vertex), which is
-  // essential for script fonts where strokes/letters can touch at a corner.
-  const ppm=10;
-  const W=Math.ceil(150*ppm), H=Math.ceil(150*ppm);
-  const c=document.createElement('canvas'); c.width=W; c.height=H;
-  const ctx=c.getContext('2d',{willReadFrequently:true});
-  const family=canvasFontFamily(fontFamily);
-  const fsPx=(+fontSizeMm)*ppm;
-  ctx.clearRect(0,0,W,H);
-  ctx.font=`${fsPx}px ${family}`;
-  ctx.textAlign='center';
-  ctx.textBaseline='alphabetic';
-  const measured=Math.max(1,ctx.measureText(text).width);
-  const maxPx=(maxWidthMm||125)*ppm;
-  const scaleX=Math.min(1,maxPx/measured);
-  ctx.save();
-  ctx.translate(xMm*ppm,yMm*ppm);
-  ctx.scale(scaleX,1);
-  ctx.fillStyle='#000';
-  ctx.fillText(text,0,0);
-  ctx.restore();
-
-  const rgba=ctx.getImageData(0,0,W,H).data;
-  const on=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&rgba[(y*W+x)*4+3]>=80;
-  const edges=[];
-  const add=(x1,y1,x2,y2)=>edges.push({x1,y1,x2,y2,used:false});
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(on(x,y)){
-    if(!on(x,y-1)) add(x,y,x+1,y);          // right
-    if(!on(x+1,y)) add(x+1,y,x+1,y+1);      // down
-    if(!on(x,y+1)) add(x+1,y+1,x,y+1);      // left
-    if(!on(x-1,y)) add(x,y+1,x,y);          // up
-  }
-  if(!edges.length) return '';
-
-  const k=(x,y)=>x+','+y;
-  const outgoing=new Map();
-  edges.forEach((e,i)=>{
-    const kk=k(e.x1,e.y1);
-    if(!outgoing.has(kk)) outgoing.set(kk,[]);
-    outgoing.get(kk).push(i);
-  });
-  const dir=e=> e.x2>e.x1?0:e.y2>e.y1?1:e.x2<e.x1?2:3;
-  // At a touching corner choose the right-most continuation. This keeps
-  // separate contours separate instead of jumping from one loop to another.
-  const rank=[1,0,3,2];
-  function chooseNext(indices,prevDir){
-    let best=-1,bestRank=99;
-    for(const i of indices||[]){
-      if(edges[i].used) continue;
-      const delta=(dir(edges[i])-prevDir+4)%4;
-      const r=rank.indexOf(delta);
-      if(r<bestRank){bestRank=r;best=i;}
-    }
-    return best;
-  }
-
-  const loops=[];
-  for(let seed=0;seed<edges.length;seed++){
-    if(edges[seed].used) continue;
-    const first=edges[seed];
-    const sx=first.x1, sy=first.y1;
-    let idx=seed, pts=[], guard=0, closed=false;
-    while(idx>=0 && guard++<1000000){
-      const e=edges[idx];
-      if(e.used) break;
-      e.used=true;
-      pts.push({x:e.x1,y:e.y1});
-      if(e.x2===sx && e.y2===sy){closed=true;break;}
-      idx=chooseNext(outgoing.get(k(e.x2,e.y2)),dir(e));
-    }
-    if(closed && pts.length>=4) loops.push(simplifyLoop(pts));
-  }
-
-  const d=loops.filter(l=>l.length>=3).map(loop=>{
-    const a=loop.map(p=>`${(p.x/ppm).toFixed(3)} ${(p.y/ppm).toFixed(3)}`);
-    return `M ${a.join(' L ')} Z`;
-  }).join(' ');
-  if(!d) throw new Error('Text outline tracing produced no closed paths.');
-
-  if(mode==='cut')
-    return `<path d="${d}" fill="none" stroke="#ff0000" stroke-width=".20" fill-rule="evenodd"/>`;
-  return `<path d="${d}" fill="#000000" stroke="none" fill-rule="evenodd"/>`;
-}
 async function buildSideBySideLaserSVG(){
-   const laserArt=await exportArtForLaser();
-   const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
-   const rightX=165;
-   const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
-   const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
-   const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
-
-   // IMPORTANT: these are the exact same text objects/coordinates used in Exact Laser Layout.
-   // No PNG freezing, no second font-size calculation, and no export-only repositioning.
-   // Copy the ACTUAL rendered wording from Exact Laser Layout.
-   // This preserves the same browser-resolved font, size, baseline and width-fit transform.
-   const cutWords=(await vectorizeBrowserText(q('txt').value,customMainFont||q('font').value,+q('fs').value,pos.main.x,pos.main.y,125,'cut'))
-     +(await vectorizeBrowserText(q('small').value,customSmallFont||q('font2').value,+q('ss').value,pos.small.x,pos.small.y,125,'cut'));
-
-   const ring=(ringOuterPath(75,75,74.9,false)
-     + `<circle cx="75" cy="75" r="67.5" fill="none" stroke="#ff0000" stroke-width=".25"/>`)
-     .replaceAll('#e00000','#ff0000');
-
-   const verse=await vectorizeBrowserText(q('verse').value,q('font3').value,+q('vs').value,pos.verse.x,pos.verse.y,125,'engrave');
-
-   return `<?xml version="1.0" encoding="UTF-8"?>
-   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-        width="315mm" height="${150+loopExtra}mm"
-        viewBox="0 -${loopExtra} 315 ${150+loopExtra}">
-     <title>${safeFileName(q('txt').value)} - Laser Plaque V52</title>
-     <metadata id="LASER_SETTINGS">${JSON.stringify({
-       version:"V52",
-       layout:"cloned from rendered Exact Laser Layout including width-fit transform",
-       cut:{speed_mm_min:cs,power_percent:cp},
-       image_engrave:{speed_mm_min:is,power_percent:ip},
-       line_engrave:{speed_mm_min:ls,power_percent:lp}
-     })}</metadata>
-
-     <g id="LEFT_BACK_PLATE">
-       <g id="CUT_BACK_${cs}mm-min_${cp}pct" data-operation="cut">
-         <circle cx="75" cy="75" r="74.9" fill="none" stroke="#ff0000" stroke-width=".25"/>
-       </g>
-       <g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct" data-operation="image-engrave">
-         ${laserArt}
-       </g>
-       <g id="REFERENCE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave">
-         ${verse}
-       </g>
-     </g>
-
-     <g id="RIGHT_FRONT_RING_AND_WORDING" transform="translate(${rightX} 0)">
-       <g id="CUT_FRONT_${cs}mm-min_${cp}pct" data-operation="cut">
-         ${ring}
-         ${cutWords}
-       </g>
-     </g>
-   </svg>`;
+ const laserArt=await exportArtForLaser(), d=shapeDims(), gap=15, rightX=d.w+gap;
+ const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
+ const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
+ const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
+ const outer=shapePath(d.k,0,0,d.w,d.h), inner=shapePath(d.k,d.i,d.i,d.w-2*d.i,d.h-2*d.i);
+ // Map editor text positions (which include 20 mm preview padding) into export coordinates.
+ const mx=pos.main.x-20, my=pos.main.y-20, sx=pos.small.x-20, sy=pos.small.y-20, vx=pos.verse.x-20, vy=pos.verse.y-20;
+ const backTag=backTagSVG(d.w/2,0,false);
+ const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backTag}<path d="${outer}"/><g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/><text x="${mx}" y="${my}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text><text x="${sx}" y="${sy}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text></g></g>`;
+ const ref=`<g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"><text x="${vx}" y="${vy}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="#000000">${esc(q('verse').value)}</text></g>`;
+ const img=`<g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct" data-operation="image-engrave" data-speed-mm-min="${is}" data-power-percent="${ip}">${laserArt}</g>`;
+ const metadata={shape:d.k,width_mm:d.w,height_mm:d.h,cut:{speed_mm_min:cs,power_percent:cp},image_engrave:{speed_mm_min:is,power_percent:ip},line_engrave:{speed_mm_min:ls,power_percent:lp}};
+ const tagExtra=q('loopOn').checked?Math.max(6,+q('loopH').value||14):0;
+ return `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${d.w*2+gap}mm" height="${d.h+tagExtra}mm" viewBox="0 -${tagExtra} ${d.w*2+gap} ${d.h+tagExtra}"><title>${safeFileName(q('txt').value)} - ${d.k}</title><metadata>${JSON.stringify(metadata)}</metadata>${cut}${ref}${img}</svg>`;
 }
-
 async function downloadSideBySideLaserSVG(){
  try{
    const svg=await buildSideBySideLaserSVG();
    const filename=safeFileName(q('txt').value)+'.svg';
    triggerDownload(svg,filename);
    const st=document.getElementById('downloadStatus');
-   if(st) st.textContent='Downloaded '+filename+' — LEFT: back plate cut + image/reference engrave. RIGHT: ring/tab/hole/inner circle + both wordings cut.';
+   if(st) st.textContent='Downloaded '+filename+' — LEFT: back plate cut + image/reference engrave. LEFT: back plate + hanging tag/hole cut + image/reference engrave. RIGHT: front frame/inner opening + both wordings cut.';
  }catch(err){
    alert('Could not create side-by-side laser SVG: '+err.message);
  }
@@ -887,309 +599,6 @@ async function downloadPart(which){
    alert('Could not create the SVG download: '+err.message);
  }
 }
-
-// ===== V52 OneDrive direct-save + Saved Laser Jobs browser =====
-// Uses MSAL redirect authentication (not popups), which is more reliable on iPad/iPhone.
-// The shared folder URL contains no credentials. Microsoft Graph resolves it only after
-// the signed-in user grants delegated Files.ReadWrite permission.
-const LASER_JOBS_DRIVE_ID = 'b!DORod8cAwEeqnxaZpfV3GhYZDQSigd5Di6dztrjfNifNC-SeJPSDTKAHbBS-wTsv';
-const LASER_JOBS_FOLDER_ID = '01TO5MCZ5BESFBRJ6JNNBLKQFYNURMBP7F';
-const LASER_JOBS_FOLDER_PATH = 'Business / Laser engraving / Laser Jobs';
-const LASER_JOBS_WEB_URL = 'https://davidcrymbleandsons967-my.sharepoint.com/personal/andrew_crymbleandsons_com/Documents/Business/Laser%20engraving/Laser%20Jobs';
-const PLAQUE_TENANT_ID = 'f8e29d93-70ca-4c92-94f8-1a5d51ea728f';
-const PLAQUE_DEFAULT_CLIENT_ID = '56f4153d-6f64-4bc4-a9db-0b5d97cb7587';
-const GRAPH_SCOPES = ['Files.ReadWrite','User.Read'];
-const PENDING_SAVE_KEY = 'plaque_onedrive_pending_save';
-let msalApp = null;
-let msalRedirectHandled = false;
-let msalRedirectResult = null;
-let oneDriveBootstrapPromise = null;
-
-function initOneDriveUI(){
-  const cid=q('msClientId'), red=q('msRedirectUri');
-  const exactRedirect = window.location.origin==='null'
-    ? window.location.href.split('#')[0].split('?')[0]
-    : window.location.origin+window.location.pathname;
-  if(red) red.value=exactRedirect;
-  if(cid) cid.value=localStorage.getItem('plaque_ms_client_id')||PLAQUE_DEFAULT_CLIENT_ID;
-}
-
-function saveMicrosoftSetup(){
-  const cid=(q('msClientId')?.value||'').trim();
-  if(!cid){ alert('Paste your Microsoft Application (Client) ID first.'); return; }
-  localStorage.setItem('plaque_ms_client_id',cid);
-  msalApp=null;
-  msalRedirectHandled=false;
-  msalRedirectResult=null;
-  q('oneDriveStatus').innerHTML='<b>Microsoft setup saved.</b> Press Save Laser Job to OneDrive.';
-}
-
-function encodeSharingUrl(url){
-  const bytes=new TextEncoder().encode(url);
-  let binary='';
-  for(const b of bytes) binary+=String.fromCharCode(b);
-  return 'u!'+btoa(binary).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_');
-}
-
-async function getMsalApp(){
-  const clientId=(q('msClientId')?.value||localStorage.getItem('plaque_ms_client_id')||PLAQUE_DEFAULT_CLIENT_ID).trim();
-  if(!clientId) throw new Error('Microsoft Client ID is not set. Open OneDrive setup and paste the Application (Client) ID.');
-  if(!window.MSALPublicClientApplication) throw new Error('Microsoft sign-in library is still loading. Wait a moment and try again.');
-  if(msalApp) return msalApp;
-  const redirectUri=(q('msRedirectUri')?.value||window.location.origin+window.location.pathname).trim();
-  msalApp=new window.MSALPublicClientApplication({
-    auth:{
-      clientId,
-      authority:`https://login.microsoftonline.com/${PLAQUE_TENANT_ID}`,
-      redirectUri,
-      postLogoutRedirectUri:redirectUri,
-      navigateToLoginRequestUrl:false
-    },
-    cache:{cacheLocation:'localStorage'}
-  });
-  await msalApp.initialize();
-  return msalApp;
-}
-
-async function handleMsalRedirectOnce(){
-  const app=await getMsalApp();
-  if(msalRedirectHandled) return msalRedirectResult;
-  // IMPORTANT: redirect responses must be fully handled before any new interactive call.
-  msalRedirectResult=await app.handleRedirectPromise();
-  msalRedirectHandled=true;
-  if(msalRedirectResult?.account) app.setActiveAccount(msalRedirectResult.account);
-  else if(!app.getActiveAccount() && app.getAllAccounts().length) app.setActiveAccount(app.getAllAccounts()[0]);
-  return msalRedirectResult;
-}
-
-async function getGraphToken(){
-  const app=await getMsalApp();
-  await handleMsalRedirectOnce();
-  let account=app.getActiveAccount()||app.getAllAccounts()[0];
-
-  if(!account){
-    localStorage.setItem(PENDING_SAVE_KEY,'1');
-    q('oneDriveStatus').innerHTML='<b>Opening Microsoft sign-in…</b><br>You will return here automatically.';
-    await app.loginRedirect({scopes:GRAPH_SCOPES,prompt:'select_account'});
-    return null; // navigation occurs
-  }
-
-  try{
-    const silent=await app.acquireTokenSilent({scopes:GRAPH_SCOPES,account});
-    return silent.accessToken;
-  }catch(e){
-    // Never fall back to a popup on iPad. Continue with a full-page redirect instead.
-    localStorage.setItem(PENDING_SAVE_KEY,'1');
-    q('oneDriveStatus').innerHTML='<b>Microsoft needs to confirm access…</b><br>You will return here automatically.';
-    await app.acquireTokenRedirect({scopes:GRAPH_SCOPES,account});
-    return null; // navigation occurs
-  }
-}
-
-async function graphJson(url, token, options={}){
-  const headers=new Headers(options.headers||{});
-  headers.set('Authorization','Bearer '+token);
-  if(options.body && typeof options.body==='string' && !headers.has('Content-Type')) headers.set('Content-Type','application/json');
-  const r=await fetch(url,{...options,headers});
-  if(!r.ok){
-    let detail=''; try{ detail=(await r.json())?.error?.message||''; }catch(e){ detail=await r.text(); }
-    throw new Error(`Microsoft Graph ${r.status}: ${detail||r.statusText}`);
-  }
-  if(r.status===204) return null;
-  return await r.json();
-}
-
-function laserInstructionsText(jobName){
-  return `LASER JOB — ${jobName}\n\n`+
-    `Created: ${new Date().toLocaleString()}\n`+
-    `Material thickness: 2 mm\n`+
-    `Finished plaque diameter: 150 mm\n`+
-    `Front ring inner opening: 135 mm\n`+
-    `Layout: LEFT = back plate; RIGHT = front ring + wording\n\n`+
-    `COLOUR RULE\nRED = CUT\nBLACK = ENGRAVE\n\n`+
-    `CUT: ${q('cutSpeed').value} mm/min @ ${q('cutPower').value}% power\n`+
-    `IMAGE ENGRAVE: ${q('imageSpeed').value} mm/min @ ${q('imagePower').value}% power\n`+
-    `LINE / REFERENCE ENGRAVE: ${q('lineSpeed').value} mm/min @ ${q('linePower').value}% power\n\n`+
-    `Main wording: ${q('txt').value}\n`+
-    `Small wording: ${q('small').value}\n`+
-    `Verse/reference: ${q('verse').value}\n`+
-    `Hanging loop: ${q('loopOn').checked?'ON':'OFF'}\n\n`+
-    `Generated by Laser Plaque Designer V52 (V47 geometry + iPad redirect + fixed Laser Jobs destination + saved jobs browser).\n`;
-}
-
-async function putTextFile(driveId, folderId, filename, content, mime, token){
-  const encoded=encodeURIComponent(filename);
-  const url=`https://graph.microsoft.com/v1.0/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(folderId)}:/${encoded}:/content`;
-  const r=await fetch(url,{method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':mime},body:content});
-  if(!r.ok){
-    let detail=''; try{detail=(await r.json())?.error?.message||'';}catch(e){detail=await r.text();}
-    throw new Error(`Upload failed (${r.status}): ${detail||r.statusText}`);
-  }
-  return await r.json();
-}
-
-function openLaserJobsFolder(){
-  window.open(LASER_JOBS_WEB_URL,'_blank','noopener');
-}
-
-function formatJobDate(iso,name=''){
-  // Prefer the date already included in the job folder name; otherwise use Graph metadata.
-  const m=String(name).match(/(\d{4})-(\d{2})-(\d{2})/);
-  if(m) return `${m[3]}/${m[2]}/${m[1]}`;
-  if(!iso) return '';
-  try{return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return '';}
-}
-
-function renderSavedLaserJobs(items){
-  const list=q('savedJobsList'), status=q('savedJobsStatus');
-  if(!list||!status) return;
-  const folders=(items||[]).filter(i=>i.folder).sort((a,b)=>
-    String(b.createdDateTime||b.lastModifiedDateTime||'').localeCompare(String(a.createdDateTime||a.lastModifiedDateTime||''))
-  );
-  if(!folders.length){
-    list.innerHTML='';
-    status.textContent='No saved laser jobs yet.';
-    return;
-  }
-  status.innerHTML=`<b>${folders.length} saved job${folders.length===1?'':'s'}</b> — newest first.`;
-  list.innerHTML=folders.map(item=>{
-    const name=esc(item.name||'Laser Job');
-    const date=esc(formatJobDate(item.createdDateTime||item.lastModifiedDateTime,item.name));
-    const url=String(item.webUrl||LASER_JOBS_WEB_URL).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-    const count=item.folder?.childCount;
-    const files=Number.isFinite(count)?`${count} file${count===1?'':'s'}`:'';
-    return `<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid #ddd">
-      <div><b>${name}</b><div class="note">${date}${date&&files?' • ':''}${files}</div></div>
-      <a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 12px;border-radius:6px;background:#0f6cbd;color:white;text-decoration:none;font-size:13px;font-weight:bold">Open</a>
-    </div>`;
-  }).join('');
-}
-
-async function refreshSavedLaserJobs(interactive=false){
-  const status=q('savedJobsStatus'), btn=q('refreshJobsBtn');
-  try{
-    if(btn) btn.disabled=true;
-    if(status) status.textContent='Loading saved laser jobs…';
-    const app=await getMsalApp();
-    await handleMsalRedirectOnce();
-    const account=app.getActiveAccount()||app.getAllAccounts()[0];
-    if(!account){
-      if(status) status.textContent='Microsoft is not signed in yet. Use Save Laser Job to OneDrive first.';
-      return;
-    }
-    let token;
-    try{
-      token=(await app.acquireTokenSilent({scopes:GRAPH_SCOPES,account})).accessToken;
-    }catch(e){
-      if(!interactive){
-        if(status) status.textContent='Tap Refresh saved jobs to reconnect to Microsoft.';
-        return;
-      }
-      localStorage.setItem(PENDING_SAVE_KEY,'refresh_jobs');
-      if(status) status.textContent='Microsoft needs to confirm access…';
-      await app.acquireTokenRedirect({scopes:GRAPH_SCOPES,account});
-      return;
-    }
-    const url=`https://graph.microsoft.com/v1.0/drives/${encodeURIComponent(LASER_JOBS_DRIVE_ID)}/items/${encodeURIComponent(LASER_JOBS_FOLDER_ID)}/children?$select=id,name,webUrl,folder,createdDateTime,lastModifiedDateTime&$top=200`;
-    const data=await graphJson(url,token);
-    renderSavedLaserJobs(data?.value||[]);
-  }catch(err){
-    console.error('Could not load saved jobs',err);
-    if(status) status.innerHTML='<b>Could not load saved jobs:</b> '+esc(err.message||String(err));
-  }finally{
-    if(btn) btn.disabled=false;
-  }
-}
-
-async function saveLaserJobToOneDrive(){
-  const st=q('oneDriveStatus'), btn=q('oneDriveSaveBtn'), topBtn=q('topOneDriveSaveBtn');
-  try{
-    btn.disabled=true; if(topBtn) topBtn.disabled=true;
-    localStorage.setItem(PENDING_SAVE_KEY,'1');
-    st.textContent='Connecting to Microsoft…';
-    const token=await getGraphToken();
-    if(!token) return; // redirect has started
-
-    st.textContent='Opening Business / Laser engraving / Laser Jobs…';
-    // V52 uses the exact OneDrive for Business drive + folder IDs for the
-    // permanent Laser Jobs folder. No anonymous sharing-link resolution is needed.
-    const driveId=LASER_JOBS_DRIVE_ID;
-    const rootFolderId=LASER_JOBS_FOLDER_ID;
-
-    const base=safeFileName(q('txt').value);
-    const stamp=new Date().toISOString().slice(0,10);
-    const requestedFolder=`${base} - ${stamp}`;
-    st.textContent='Creating job folder…';
-    const child=await graphJson(`https://graph.microsoft.com/v1.0/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(rootFolderId)}/children`,token,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name:requestedFolder,folder:{},'@microsoft.graph.conflictBehavior':'rename'})
-    });
-    const jobFolderId=child.id;
-    const actualFolderName=child.name||requestedFolder;
-
-    st.textContent='Generating laser SVG…';
-    const svg=await buildSideBySideLaserSVG();
-    const instructions=laserInstructionsText(base);
-    st.textContent='Uploading SVG and laser instructions…';
-    await putTextFile(driveId,jobFolderId,base+'.svg',svg,'image/svg+xml',token);
-    await putTextFile(driveId,jobFolderId,'LASER INSTRUCTIONS.txt',instructions,'text/plain;charset=utf-8',token);
-    localStorage.removeItem(PENDING_SAVE_KEY);
-    st.innerHTML=`<b>Saved to OneDrive ✓</b><br>${esc(LASER_JOBS_FOLDER_PATH)} / ${esc(actualFolderName)}<br>${esc(base)}.svg + LASER INSTRUCTIONS.txt`;
-    await refreshSavedLaserJobs(false);
-  }catch(err){
-    console.error(err);
-    localStorage.removeItem(PENDING_SAVE_KEY);
-    st.innerHTML='<b>OneDrive save failed:</b> '+esc(err.message||String(err));
-  }finally{btn.disabled=false; if(topBtn) topBtn.disabled=false;}
-}
-
-async function bootstrapOneDriveRedirect(){
-  if(oneDriveBootstrapPromise) return oneDriveBootstrapPromise;
-  oneDriveBootstrapPromise=(async()=>{
-    try{
-      initOneDriveUI();
-      if(!window.MSALPublicClientApplication) return;
-      await handleMsalRedirectOnce();
-      const app=await getMsalApp();
-      const account=app.getActiveAccount()||app.getAllAccounts()[0];
-      const pending=localStorage.getItem(PENDING_SAVE_KEY);
-      if(account && pending==='1'){
-        q('oneDriveStatus').innerHTML='<b>Microsoft sign-in complete.</b> Finishing your OneDrive save…';
-        // Let the restored page finish drawing before SVG generation/upload.
-        setTimeout(()=>saveLaserJobToOneDrive(),250);
-      } else if(account && pending==='refresh_jobs'){
-        localStorage.removeItem(PENDING_SAVE_KEY);
-        q('oneDriveStatus').innerHTML='<b>Microsoft connected ✓</b><br>Press Save Laser Job to OneDrive when ready.';
-        setTimeout(()=>refreshSavedLaserJobs(false),250);
-      } else if(account){
-        q('oneDriveStatus').innerHTML='<b>Microsoft connected ✓</b><br>Press Save Laser Job to OneDrive when ready.';
-        setTimeout(()=>refreshSavedLaserJobs(false),150);
-      }
-    }catch(err){
-      console.error('Microsoft redirect handling failed',err);
-      localStorage.removeItem(PENDING_SAVE_KEY);
-      if(q('oneDriveStatus')) q('oneDriveStatus').innerHTML='<b>Microsoft sign-in failed:</b> '+esc(err.message||String(err));
-    }
-  })();
-  return oneDriveBootstrapPromise;
-}
-
-window.addEventListener('DOMContentLoaded',()=>{
-  initOneDriveUI();
-  // V52: mirror the detailed OneDrive status beside the always-visible top save button.
-(function syncTopOneDriveStatus(){
-  const source=q('oneDriveStatus'), target=q('topOneDriveStatus');
-  if(!source||!target) return;
-  const sync=()=>{ target.innerHTML=source.innerHTML; };
-  sync();
-  new MutationObserver(sync).observe(source,{childList:true,subtree:true,characterData:true});
-})();
-
-bootstrapOneDriveRedirect();
-});
-window.addEventListener('msal-ready',bootstrapOneDriveRedirect);
-// ===== end OneDrive integration =====
-
 async function downloadAllLayersSeparately(){
  // Separate downloads preserve three independently selectable laser layers.
  await downloadPart('cut');
@@ -1198,24 +607,19 @@ async function downloadAllLayersSeparately(){
  const st=document.getElementById('downloadStatus');
  if(st) st.textContent='Created 3 aligned files: CUT, REFERENCE and IMAGE. If Chrome asks, allow multiple downloads for this file.';
 }
-draw();
-</script>
-<script>
-(async function(){
-  try {
-    if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const reg of regs) await reg.unregister();
-    }
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-    console.log("V47: old service worker and cached app files cleared.");
-  } catch(e) {
-    console.warn("V36 cache cleanup:", e);
-  }
-})();
-</script>
 
-</body></html>
+['outerShape','shapeW','shapeH'].forEach(id=>q(id).addEventListener('change',()=>{let d=shapeDims(),pad=20,cx=pad+d.w/2,cy=pad+d.h/2;pos.main.x=cx;pos.main.y=cy-2;pos.small.x=cx;pos.small.y=cy+27;pos.verse.x=cx;pos.verse.y=pad+d.h-17;draw();}));
+draw();
+
+function syncTemplateButtons(){
+ const sel=q('outerShape'); if(!sel)return;
+ document.querySelectorAll('.shapeGrid button[data-shape]').forEach(b=>b.classList.toggle('active',b.dataset.shape===sel.value));
+ const n=document.getElementById('currentTemplateName'); if(n)n.textContent=sel.options[sel.selectedIndex].text;
+}
+document.querySelectorAll('.shapeGrid button[data-shape]').forEach(b=>b.addEventListener('click',()=>{
+ q('outerShape').value=b.dataset.shape; syncTemplateButtons(); draw();
+ document.querySelector('main')?.scrollIntoView({behavior:'smooth',block:'start'});
+}));
+q('outerShape').addEventListener('change',syncTemplateButtons);
+setTimeout(syncTemplateButtons,0);
+</script>\n<script>\n(function compactSections(){\n function run(){\n  const aside=document.querySelector('aside'); if(!aside) return;\n  const heads=[...aside.querySelectorAll(':scope > h3')];\n  heads.forEach((h,idx)=>{\n    if(h.closest('details')) return;\n    const d=document.createElement('details'); d.className='controlSection';\n    // Keep first text section open; export open so the main action is easy to find.\n    if(idx===0 || /export/i.test(h.textContent)) d.open=true;\n    const sum=document.createElement('summary'); sum.textContent=h.textContent.trim();\n    const body=document.createElement('div'); body.className='sectionBody';\n    h.parentNode.insertBefore(d,h); d.appendChild(sum); d.appendChild(body);\n    let n=h.nextSibling; h.remove();\n    while(n && !(n.nodeType===1 && (n.tagName==='H3' || n.classList?.contains('templateBox')))){\n      const next=n.nextSibling; body.appendChild(n); n=next;\n    }\n  });\n }\n if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();\n})();\n</script>\n</body></html>

@@ -166,10 +166,10 @@ Both physical parts are positioned side by side in the same SVG. The downloaded 
 <b>Laser colour rule:</b> <span style="color:#ff0000"><b>RED = CUT</b></span> &nbsp; | &nbsp; <span style="color:#000000"><b>BLACK = ENGRAVE</b></span>.<br>
 Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 mm/min @ 80%</b>; <b>Line/reference engrave 3500 mm/min @ 40%</b>.
 </div>
-<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V47 Exact Preview + OneDrive</button>
+<button onclick="downloadSideBySideLaserSVG()" style="font-weight:bold">Download Side-by-Side Laser SVG — V48 Exact Preview + OneDrive</button>
 <div style="margin-top:12px;padding:12px;border:1px solid #9bb7d3;border-radius:8px;background:#f5faff">
   <button type="button" id="oneDriveSaveBtn" onclick="saveLaserJobToOneDrive()" style="font-weight:bold;background:#0f6cbd;color:white;border:0;border-radius:6px">☁️ Save Laser Job to OneDrive</button>
-  <div id="oneDriveStatus" class="note" style="margin-top:7px"><b>OneDrive destination:</b> your selected Laser Jobs folder. First use requires Microsoft sign-in and a one-time app Client ID.</div>
+  <div id="oneDriveStatus" class="note" style="margin-top:7px"><b>OneDrive destination:</b> your selected Laser Jobs folder. First use opens Microsoft sign-in in this tab, then returns here automatically and finishes the save.</div>
   <details style="margin-top:8px">
     <summary style="cursor:pointer;font-size:13px;font-weight:bold">OneDrive setup</summary>
     <label>Microsoft Application (Client) ID</label>
@@ -180,12 +180,12 @@ Default operation settings: <b>Cut 350 mm/min @ 100%</b>; <b>Image engrave 8000 
     <div class="note">The Client ID is not a password or secret. Do not put a client secret in this page. Register this page as a <b>Single-page application (SPA)</b> and grant delegated <b>Files.ReadWrite</b> permission.</div>
   </details>
 </div>
-<div class="note" style="margin-top:8px"><b>V47 true WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
+<div class="note" style="margin-top:8px"><b>V48:</b> V47 laser geometry preserved exactly; OneDrive sign-in changed to iPad-safe Microsoft redirect authentication. <b>WYSIWYG preview:</b> the assembled preview and laser export use the same traced SVG path geometry. V47 keeps the V46 master geometry and removes the separate preview translation entirely: assembled coordinates are the exact laser coordinates with no preview/export coordinate shift. The laser file contains no live &lt;text&gt; elements. This locks the visible font, size and position so another SVG program cannot substitute the font. LEFT = back plate/image/reference; RIGHT = ring/tab/inner cut/main wording/small wording. Red = cut, black = engrave.</div>
 <div class="note" style="margin-top:8px"><b>iPad:</b> tap Download, then use Safari’s download button / Files app to open or share the SVG. For best results, use Safari.</div>
 <div id="downloadStatus" class="note"><b>Download tip:</b> Chrome may ask permission for multiple downloads if you press several export buttons. Each button should download one SVG immediately.</div>
 <p class="note"><b>V47:</b> Exact Laser Layout now uses the same vector paths, positions, processed artwork and cut geometry as the downloaded SVG. Red = cut; black = engrave. The receiving computer does not need the font installed.</p>
 </aside><main>
-<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V47</div>
+<div class="tabs"><button id="tabAssembled" onclick="setMode('assembled')">Assembled Preview</button><button id="tabParts" onclick="setMode('parts')">Exact Laser Layout</button></div><div id="modeBadge" style="text-align:center;font-weight:700;margin:6px 0 10px">ASSEMBLED PREVIEW • V48</div>
 <div class="preview"><svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 170" width="330mm" height="170mm"></svg></div>
 </main></div>
 <script>
@@ -337,7 +337,7 @@ let drawGeneration=0;
 function setMode(next){
  mode=next;
  const b=q('modeBadge');
- if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V47 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V47');
+ if(b) b.textContent=(mode==='parts'?'EXACT LASER LAYOUT • V48 • RED = CUT / BLACK = ENGRAVE':'ASSEMBLED PREVIEW • V48');
  const a=q('tabAssembled'), p=q('tabParts');
  if(a) a.style.fontWeight=mode==='assembled'?'800':'400';
  if(p) p.style.fontWeight=mode==='parts'?'800':'400';
@@ -871,16 +871,27 @@ async function downloadPart(which){
  }
 }
 
-// ===== V47 OneDrive / SharePoint direct-save integration =====
-// The shared folder URL is intentionally stored without credentials. Microsoft Graph
-// resolves it after the user signs in with delegated Files.ReadWrite permission.
+// ===== V48 OneDrive / SharePoint direct-save integration — iPad redirect flow =====
+// Uses MSAL redirect authentication (not popups), which is more reliable on iPad/iPhone.
+// The shared folder URL contains no credentials. Microsoft Graph resolves it only after
+// the signed-in user grants delegated Files.ReadWrite permission.
 const ONE_DRIVE_SHARED_FOLDER_URL = 'https://davidcrymbleandsons967-my.sharepoint.com/:f:/g/personal/andrew_crymbleandsons_com/IgCnfCPI0EUuRrPZGkAI7iQGAbW_RueyIqypc-RfTbKk4-s?e=fXc08A';
+const PLAQUE_TENANT_ID = 'f8e29d93-70ca-4c92-94f8-1a5d51ea728f';
+const PLAQUE_DEFAULT_CLIENT_ID = '56f4153d-6f64-4bc4-a9db-0b5d97cb7587';
+const GRAPH_SCOPES = ['Files.ReadWrite','User.Read'];
+const PENDING_SAVE_KEY = 'plaque_onedrive_pending_save';
 let msalApp = null;
+let msalRedirectHandled = false;
+let msalRedirectResult = null;
+let oneDriveBootstrapPromise = null;
 
 function initOneDriveUI(){
   const cid=q('msClientId'), red=q('msRedirectUri');
-  if(red) red.value=window.location.origin==='null' ? window.location.href.split('#')[0].split('?')[0] : window.location.origin+window.location.pathname;
-  if(cid) cid.value=localStorage.getItem('plaque_ms_client_id')||'';
+  const exactRedirect = window.location.origin==='null'
+    ? window.location.href.split('#')[0].split('?')[0]
+    : window.location.origin+window.location.pathname;
+  if(red) red.value=exactRedirect;
+  if(cid) cid.value=localStorage.getItem('plaque_ms_client_id')||PLAQUE_DEFAULT_CLIENT_ID;
 }
 
 function saveMicrosoftSetup(){
@@ -888,11 +899,12 @@ function saveMicrosoftSetup(){
   if(!cid){ alert('Paste your Microsoft Application (Client) ID first.'); return; }
   localStorage.setItem('plaque_ms_client_id',cid);
   msalApp=null;
+  msalRedirectHandled=false;
+  msalRedirectResult=null;
   q('oneDriveStatus').innerHTML='<b>Microsoft setup saved.</b> Press Save Laser Job to OneDrive.';
 }
 
 function encodeSharingUrl(url){
-  // Microsoft Graph sharing URL format: u! + unpadded base64url(UTF-8 URL)
   const bytes=new TextEncoder().encode(url);
   let binary='';
   for(const b of bytes) binary+=String.fromCharCode(b);
@@ -900,33 +912,57 @@ function encodeSharingUrl(url){
 }
 
 async function getMsalApp(){
-  const clientId=(q('msClientId')?.value||localStorage.getItem('plaque_ms_client_id')||'').trim();
+  const clientId=(q('msClientId')?.value||localStorage.getItem('plaque_ms_client_id')||PLAQUE_DEFAULT_CLIENT_ID).trim();
   if(!clientId) throw new Error('Microsoft Client ID is not set. Open OneDrive setup and paste the Application (Client) ID.');
   if(!window.MSALPublicClientApplication) throw new Error('Microsoft sign-in library is still loading. Wait a moment and try again.');
   if(msalApp) return msalApp;
-  const redirectUri=q('msRedirectUri').value;
+  const redirectUri=(q('msRedirectUri')?.value||window.location.origin+window.location.pathname).trim();
   msalApp=new window.MSALPublicClientApplication({
-    auth:{clientId,authority:'https://login.microsoftonline.com/organizations',redirectUri},
+    auth:{
+      clientId,
+      authority:`https://login.microsoftonline.com/${PLAQUE_TENANT_ID}`,
+      redirectUri,
+      postLogoutRedirectUri:redirectUri,
+      navigateToLoginRequestUrl:false
+    },
     cache:{cacheLocation:'localStorage'}
   });
   await msalApp.initialize();
   return msalApp;
 }
 
+async function handleMsalRedirectOnce(){
+  const app=await getMsalApp();
+  if(msalRedirectHandled) return msalRedirectResult;
+  // IMPORTANT: redirect responses must be fully handled before any new interactive call.
+  msalRedirectResult=await app.handleRedirectPromise();
+  msalRedirectHandled=true;
+  if(msalRedirectResult?.account) app.setActiveAccount(msalRedirectResult.account);
+  else if(!app.getActiveAccount() && app.getAllAccounts().length) app.setActiveAccount(app.getAllAccounts()[0]);
+  return msalRedirectResult;
+}
+
 async function getGraphToken(){
   const app=await getMsalApp();
-  const scopes=['Files.ReadWrite','User.Read'];
-  let account=app.getAllAccounts()[0];
+  await handleMsalRedirectOnce();
+  let account=app.getActiveAccount()||app.getAllAccounts()[0];
+
   if(!account){
-    const login=await app.loginPopup({scopes,prompt:'select_account'});
-    account=login.account;
+    localStorage.setItem(PENDING_SAVE_KEY,'1');
+    q('oneDriveStatus').innerHTML='<b>Opening Microsoft sign-in…</b><br>You will return here automatically.';
+    await app.loginRedirect({scopes:GRAPH_SCOPES,prompt:'select_account'});
+    return null; // navigation occurs
   }
+
   try{
-    const silent=await app.acquireTokenSilent({scopes,account});
+    const silent=await app.acquireTokenSilent({scopes:GRAPH_SCOPES,account});
     return silent.accessToken;
   }catch(e){
-    const interactive=await app.acquireTokenPopup({scopes,account});
-    return interactive.accessToken;
+    // Never fall back to a popup on iPad. Continue with a full-page redirect instead.
+    localStorage.setItem(PENDING_SAVE_KEY,'1');
+    q('oneDriveStatus').innerHTML='<b>Microsoft needs to confirm access…</b><br>You will return here automatically.';
+    await app.acquireTokenRedirect({scopes:GRAPH_SCOPES,account});
+    return null; // navigation occurs
   }
 }
 
@@ -958,7 +994,7 @@ function laserInstructionsText(jobName){
     `Small wording: ${q('small').value}\n`+
     `Verse/reference: ${q('verse').value}\n`+
     `Hanging loop: ${q('loopOn').checked?'ON':'OFF'}\n\n`+
-    `Generated by Laser Plaque Designer V47.\n`;
+    `Generated by Laser Plaque Designer V48 (V47 geometry + iPad OneDrive redirect fix).\n`;
 }
 
 async function putTextFile(driveId, folderId, filename, content, mime, token){
@@ -975,8 +1011,12 @@ async function putTextFile(driveId, folderId, filename, content, mime, token){
 async function saveLaserJobToOneDrive(){
   const st=q('oneDriveStatus'), btn=q('oneDriveSaveBtn');
   try{
-    btn.disabled=true; st.textContent='Signing in to Microsoft…';
+    btn.disabled=true;
+    localStorage.setItem(PENDING_SAVE_KEY,'1');
+    st.textContent='Connecting to Microsoft…';
     const token=await getGraphToken();
+    if(!token) return; // redirect has started
+
     st.textContent='Finding your OneDrive Laser Jobs folder…';
     const shareId=encodeSharingUrl(ONE_DRIVE_SHARED_FOLDER_URL);
     const shared=await graphJson(`https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem`,token);
@@ -1001,13 +1041,45 @@ async function saveLaserJobToOneDrive(){
     st.textContent='Uploading SVG and laser instructions…';
     await putTextFile(driveId,jobFolderId,base+'.svg',svg,'image/svg+xml',token);
     await putTextFile(driveId,jobFolderId,'LASER INSTRUCTIONS.txt',instructions,'text/plain;charset=utf-8',token);
+    localStorage.removeItem(PENDING_SAVE_KEY);
     st.innerHTML=`<b>Saved to OneDrive ✓</b><br>${esc(actualFolderName)}<br>${esc(base)}.svg + LASER INSTRUCTIONS.txt`;
   }catch(err){
     console.error(err);
+    localStorage.removeItem(PENDING_SAVE_KEY);
     st.innerHTML='<b>OneDrive save failed:</b> '+esc(err.message||String(err));
   }finally{btn.disabled=false;}
 }
-window.addEventListener('DOMContentLoaded',initOneDriveUI);
+
+async function bootstrapOneDriveRedirect(){
+  if(oneDriveBootstrapPromise) return oneDriveBootstrapPromise;
+  oneDriveBootstrapPromise=(async()=>{
+    try{
+      initOneDriveUI();
+      if(!window.MSALPublicClientApplication) return;
+      await handleMsalRedirectOnce();
+      const app=await getMsalApp();
+      const account=app.getActiveAccount()||app.getAllAccounts()[0];
+      if(account && localStorage.getItem(PENDING_SAVE_KEY)==='1'){
+        q('oneDriveStatus').innerHTML='<b>Microsoft sign-in complete.</b> Finishing your OneDrive save…';
+        // Let the restored page finish drawing before SVG generation/upload.
+        setTimeout(()=>saveLaserJobToOneDrive(),250);
+      } else if(account){
+        q('oneDriveStatus').innerHTML='<b>Microsoft connected ✓</b><br>Press Save Laser Job to OneDrive when ready.';
+      }
+    }catch(err){
+      console.error('Microsoft redirect handling failed',err);
+      localStorage.removeItem(PENDING_SAVE_KEY);
+      if(q('oneDriveStatus')) q('oneDriveStatus').innerHTML='<b>Microsoft sign-in failed:</b> '+esc(err.message||String(err));
+    }
+  })();
+  return oneDriveBootstrapPromise;
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  initOneDriveUI();
+  bootstrapOneDriveRedirect();
+});
+window.addEventListener('msal-ready',bootstrapOneDriveRedirect);
 // ===== end OneDrive integration =====
 
 async function downloadAllLayersSeparately(){

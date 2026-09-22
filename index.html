@@ -338,7 +338,10 @@ body.simple-manual #LASER_BG_AI{display:block}
 <label>Main wording</label><input id="txt" value="Be Still">
 <label>Small wording</label><input id="small" value="& KNOW">
 <label>Verse/reference</label><input id="verse" value="PSALM 46:10">
-<h3 style="margin-bottom:4px">Big raised lettering</h3>
+<h3 style="margin-bottom:4px">Big raised lettering</h3><label style="margin-top:8px"><input id="joinCutWords" type="checkbox" checked style="width:auto"> <b>Keep each cut word joined as one piece</b></label>
+<div class="note">Adds a small joining bridge through each large cut word so individual letters stay together after cutting. One separate piece per word.</div>
+<div class="row"><div><label>Joining bridge thickness (mm)</label><input id="wordBridge" type="number" min="0.6" max="3" step="0.1" value="1.2"></div></div>
+
 <label>Font</label><select id="font"><optgroup label="Script / Calligraphy">
 <option value="Brush Script MT">Brush Script MT</option>
 <option value="Segoe Script">Segoe Script</option>
@@ -407,8 +410,9 @@ body.simple-manual #LASER_BG_AI{display:block}
 <option value="Segoe Script">Segoe Script</option><option value="Brush Script MT">Brush Script MT</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Courier New" selected>Courier New</option>
 </select>
 <div class="row"><div><label>Letter size</label><input id="vs" type="number" min="1" step=".5" value="10"></div><div><label>Y position</label><input id="vy" type="number" value="133"></div></div>
-<label style="margin-top:8px"><input id="clearVerseBg" type="checkbox" checked style="width:auto"> Keep background clear behind verse/reference</label>
-<div class="note">Recommended: removes background engraving behind the verse so the reference stays clear and readable.</div>
+<label style="margin-top:8px"><input id="clearVerseBg" type="checkbox" checked style="width:auto"> <b>Clear background behind verse/reference</b></label>
+<button type="button" onclick="previewCleanedArtwork()" style="width:100%;margin-top:6px;font-weight:800">APPLY / PREVIEW CLEAR VERSE AREA</button>
+<div class="note"><b>Falcon-safe:</b> for uploaded/AI raster images, the software physically removes the image pixels behind the verse before export. The verse is then engraved on clean material.</div>
 <div class="row"><div><label>Clear area width (mm)</label><input id="verseClearW" type="number" min="30" max="140" step="1" value="92"></div>
 <div><label>Clear area height (mm)</label><input id="verseClearH" type="number" min="8" max="35" step="1" value="16"></div></div>
 <h3 style="margin-bottom:4px">🔗 Back-plate hanging tag</h3>
@@ -530,7 +534,7 @@ function aiApply(){if(!aiLast)return; q('txt').value=aiLast.main;q('small').valu
 
 let customMainFont='', customSmallFont='';
 const q=x=>document.getElementById(x);
-['txt','small','verse','font','font2','font3','fs','ss','vs','as','ao','artFit','artCentreMode','artX','artY','cBack','cRing','cMain','cSmall','cVerse','cArt','loopOn','loopW','loopH','holeD','loopX','outerShape','frameInset','shapeW','shapeH','artBrightness','clearVerseBg','verseClearW','verseClearH'].forEach(x=>q(x).addEventListener('input',draw));
+['txt','small','verse','font','font2','font3','fs','ss','vs','as','ao','artFit','artCentreMode','artX','artY','cBack','cRing','cMain','cSmall','cVerse','cArt','loopOn','loopW','loopH','holeD','loopX','outerShape','frameInset','shapeW','shapeH','joinCutWords','wordBridge','artBrightness','clearVerseBg','verseClearW','verseClearH'].forEach(x=>q(x).addEventListener('input',draw));
 q('font').addEventListener('change',()=>{customMainFont='';});
 q('font2').addEventListener('change',()=>{customSmallFont='';});
 function applyCustomFont(){customMainFont=q('customFont').value.trim();draw();}
@@ -834,6 +838,25 @@ async function makeCircularRasterDataURL(){
    }
    ctx.putImageData(id,0,0);
  }
+ 
+ // Physically erase a clean panel behind the verse/reference so Falcon sees transparent pixels,
+ // rather than relying on an SVG mask that some laser software ignores.
+ if(q('clearVerseBg') && q('clearVerseBg').checked){
+   const cw=Math.max(30,+q('verseClearW').value||92)*mmToPx;
+   const ch=Math.max(8,+q('verseClearH').value||16)*mmToPx;
+   // Export artwork uses a 150x150 coordinate system. Convert the live verse position into it.
+   const vx=(pos.verse.x-20)*mmToPx;
+   const vy=(pos.verse.y-20)*mmToPx;
+   const x=vx-cw/2, y=vy-ch*.76;
+   const rr=Math.min(5*mmToPx,ch/2);
+   ctx.save();
+   ctx.globalCompositeOperation='destination-out';
+   ctx.beginPath();
+   ctx.roundRect(x,y,cw,ch,rr);
+   ctx.fillStyle='#000';
+   ctx.fill();
+   ctx.restore();
+ }
  return canvas.toDataURL('image/png');
 }
 async function exportArtForLaser(){
@@ -845,6 +868,7 @@ async function exportArtForLaser(){
  } else {
    raw=artGroup(75,75);
  }
+ if(artSource.type==='raster') return raw;
  const vm=verseClearMask('VERSE_BACKGROUND_CLEAR',0,false);
  return `${vm.def}<g${vm.attr}>${raw}</g>`;
 }
@@ -912,6 +936,26 @@ function exportBackPerimeter(d){
  return `${backTagSVG(d.w/2,0,false)}<path d="${shapePath(d.k,0,0,d.w,d.h)}"/>`;
 }
 
+
+function joinedWordBridges(text,x,y,fontSize){
+ if(!q('joinCutWords') || !q('joinCutWords').checked || !text.trim()) return '';
+ const thick=Math.max(.6,Math.min(3,+q('wordBridge').value||1.2));
+ const words=text.trim().split(/\s+/);
+ const totalChars=Math.max(1,text.length);
+ // Browser-independent approximation; bridges are intentionally short and sit near the lower stroke area.
+ const avg=fontSize*.52, space=fontSize*.28;
+ const total=words.reduce((a,w)=>a+w.length*avg,0)+(words.length-1)*space;
+ let cursor=x-total/2, out='';
+ for(const w of words){
+   const ww=Math.max(fontSize*.35,w.length*avg);
+   // inset ends slightly so the bridge stays inside the word silhouette as much as possible
+   const inset=Math.min(fontSize*.10,ww*.08);
+   out+=`<rect class="WORD_JOIN_BRIDGE" x="${cursor+inset}" y="${y-fontSize*.16}" width="${Math.max(.5,ww-inset*2)}" height="${thick}" fill="#ff0000" stroke="none"/>`;
+   cursor+=ww+space;
+ }
+ return out;
+}
+
 async function buildSideBySideLaserSVG(){
  const laserArt=await exportArtForLaser(), d=shapeDims(), gap=15, rightX=d.w+gap;
  const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
@@ -921,7 +965,7 @@ async function buildSideBySideLaserSVG(){
  // Map editor text positions (which include 20 mm preview padding) into export coordinates.
  const mx=pos.main.x-20, my=pos.main.y-20, sx=pos.small.x-20, sy=pos.small.y-20, vx=pos.verse.x-20, vy=pos.verse.y-20;
  const backPerimeter=exportBackPerimeter(d);
- const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/><text x="${mx}" y="${my}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text><text x="${sx}" y="${sy}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text></g></g>`;
+ const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/><text x="${mx}" y="${my}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text><text x="${sx}" y="${sy}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text>${joinedWordBridges(q('txt').value,mx,my,+q('fs').value)}${joinedWordBridges(q('small').value,sx,sy,+q('ss').value)}</g></g>`;
  const vr=verseRasterData(q('verse').value,q('font3').value,+q('vs').value);
  const refX=vx-vr.w/2, refY=vy-vr.h*0.72;
  const ref=`<g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"><image id="VERSE_REFERENCE_ENGRAVE" href="${vr.url}" x="${refX}" y="${refY}" width="${vr.w}" height="${vr.h}" preserveAspectRatio="none"/></g>`;

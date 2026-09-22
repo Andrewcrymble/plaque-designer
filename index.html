@@ -163,6 +163,12 @@ body.simple-manual #LASER_BG_AI{display:block}
   <div id="simpleSteps" style="margin-top:13px;padding:10px;background:#f6f7f9;border-radius:9px;font-weight:700">
     1. Choose a design method &nbsp;›&nbsp; 2. Create &nbsp;›&nbsp; 3. Review & edit &nbsp;›&nbsp; 4. Download / Save
   </div>
+
+<div id="MANUAL_BG_HINT" style="margin-top:10px;padding:10px;border:1px solid #d8dde5;border-radius:9px;background:#f8fafc">
+ <b>Adding artwork manually?</b><br>
+ You can upload your own image or generate an AI image without leaving Manual Design.
+ <button type="button" onclick="simpleBackground()" style="margin-top:7px;width:100%">Choose / Generate Background Image</button>
+</div>
 </section>
 
 <div id="SIMPLE_ACTIONS">
@@ -173,6 +179,19 @@ body.simple-manual #LASER_BG_AI{display:block}
  <button type="button" onclick="saveLaserJobToOneDrive()">Save to OneDrive</button>
  <button type="button" onclick="toggleAdvanced()">Advanced</button>
 </div>
+<section id="SIMPLE_BACKGROUND" style="display:block!important;background:#fff7e8;border:3px solid #d97706;border-radius:14px;padding:16px;margin:14px 0">
+ <div style="font-size:21px;font-weight:900">BACKGROUND IMAGE</div><div style="font-weight:800;margin-top:4px">Manual design: choose your own image OR ask AI to create one.</div>
+ <div class="note" style="font-size:14px;margin:5px 0 12px">Add artwork to be engraved on the BACK plate.</div>
+ <button type="button" onclick="document.getElementById('art').click()" style="width:100%;min-height:72px;font-size:18px;font-weight:800;margin-bottom:9px">UPLOAD BACKGROUND IMAGE<br><small>PNG • JPG • WebP • SVG</small></button>
+ <button type="button" onclick="openSimpleAIBackground()" style="width:100%;min-height:62px;font-size:17px;font-weight:800">GENERATE AI BACKGROUND IMAGE</button>
+ <div id="simpleBgStatus" class="note" style="margin-top:10px;font-weight:700">No background selected.</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px">
+  <button type="button" onclick="centreArt()">Centre</button>
+  <button type="button" onclick="openSimpleArtworkControls()">Adjust</button>
+  <button type="button" onclick="openSimpleEngraveControls()">Engraving</button>
+ </div>
+</section>
+
 
 <section id="FINAL_WORKSPACE" style="background:#fff;border:3px solid #153f66;border-radius:12px;padding:12px;margin:10px 0 14px;box-shadow:0 2px 9px #bbb">
 <div style="font-size:19px;font-weight:900;color:#153f66">MASTER PLAQUE DESIGNER</div>
@@ -1492,10 +1511,11 @@ function simpleMode(mode){
    if(steps)steps.textContent='1. Shape  ›  2. Wording  ›  3. Background  ›  4. Review  ›  5. Download / Save';
    const t=document.querySelector('.templateBox') || document.getElementById('outerShape');
    if(t){ (t.closest('details')||t).scrollIntoView({behavior:'smooth',block:'start'}); }
+   const bg=document.getElementById('SIMPLE_BACKGROUND'); if(bg) bg.style.display='block';
  }
 }
 function simpleHome(){document.getElementById('SIMPLE_START')?.scrollIntoView({behavior:'smooth',block:'start'});}
-function simpleBackground(){document.getElementById('SIMPLE_BACKGROUND')?.scrollIntoView({behavior:'smooth',block:'start'});}
+function simpleBackground(){document.getElementById('SIMPLE_BACKGROUND')?.scrollIntoView({behavior:'smooth',block:'start'});});}
 function toggleAdvanced(){
  document.body.classList.toggle('advanced-collapsed');
  const b=[...document.querySelectorAll('#SIMPLE_ACTIONS button')].find(x=>x.textContent.includes('Advanced')||x.textContent.includes('Hide advanced'));
@@ -1527,6 +1547,15 @@ document.addEventListener('DOMContentLoaded',()=>{
  const art=document.getElementById('art'), st=document.getElementById('simpleBgStatus');
  if(art && st) art.addEventListener('change',()=>{
    st.textContent=art.files && art.files[0] ? 'Background loaded: '+art.files[0].name : 'No background selected yet.';
+ });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ var a=document.getElementById('art'), st=document.getElementById('simpleBgStatus');
+ if(a&&st)a.addEventListener('change',function(){
+  st.textContent=(a.files&&a.files.length)?'Loaded: '+a.files[0].name:'No background selected.';
  });
 });
 </script>

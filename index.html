@@ -1502,6 +1502,12 @@ function updateEngravePreview(){
 function simpleMode(mode){
  document.body.classList.remove('simple-ai','simple-manual');
  document.body.classList.add(mode==='ai'?'simple-ai':'simple-manual','advanced-collapsed');
+ const buttons=document.querySelectorAll('#SIMPLE_START button');
+ buttons.forEach(b=>{b.style.outline='';b.style.boxShadow='';});
+ const chosen=mode==='ai'?buttons[1]:buttons[0];
+ if(chosen){chosen.style.outline='4px solid #198754';chosen.style.boxShadow='0 0 0 2px white inset';}
+ const title=document.querySelector('#SIMPLE_START > div:first-child');
+ if(title) title.textContent=mode==='ai'?'AI Design Assist':'Manual Design';
  const steps=document.getElementById('simpleSteps');
  if(mode==='ai'){
    if(steps)steps.textContent='1. Describe your plaque  ›  2. Generate  ›  3. Review & edit  ›  4. Download / Save';
@@ -1515,7 +1521,7 @@ function simpleMode(mode){
  }
 }
 function simpleHome(){document.getElementById('SIMPLE_START')?.scrollIntoView({behavior:'smooth',block:'start'});}
-function simpleBackground(){document.getElementById('SIMPLE_BACKGROUND')?.scrollIntoView({behavior:'smooth',block:'start'});});}
+function simpleBackground(){document.getElementById('SIMPLE_BACKGROUND')?.scrollIntoView({behavior:'smooth',block:'start'});}
 function toggleAdvanced(){
  document.body.classList.toggle('advanced-collapsed');
  const b=[...document.querySelectorAll('#SIMPLE_ACTIONS button')].find(x=>x.textContent.includes('Advanced')||x.textContent.includes('Hide advanced'));

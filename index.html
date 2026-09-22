@@ -404,7 +404,7 @@ body.simple-manual #LASER_BG_AI{display:block}
 <div class="row"><div><label>Verse/reference</label><input id="cVerse" type="color" value="#ff0000"></div>
 <div><label>Artwork/engraving</label><input id="cArt" type="color" value="#555555"></div></div>
 <button type="button" onclick="resetColours()">Reset preview colours</button>
-<label>🖼 Background artwork / image</label><input type="file" id="art" accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp">
+<label>Background artwork / image</label><input type="file" id="art" accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp">
 <div class="note">SVG stays vector. PNG/JPG/WebP are embedded as raster images in the exported SVG.</div><div id="artStatus" class="note">Choose SVG, PNG, JPG/JPEG or WebP. Default: fill the complete 150 mm back plate and crop at the circular edge.</div>
 <label>Background positioning</label>
 <select id="artCentreMode">
@@ -1495,7 +1495,7 @@ function simpleMode(mode){
  }
 }
 function simpleHome(){document.getElementById('SIMPLE_START')?.scrollIntoView({behavior:'smooth',block:'start'});}
-function simpleBackground(){document.getElementById('LASER_BG_AI')?.scrollIntoView({behavior:'smooth',block:'start'});}
+function simpleBackground(){document.getElementById('SIMPLE_BACKGROUND')?.scrollIntoView({behavior:'smooth',block:'start'});}
 function toggleAdvanced(){
  document.body.classList.toggle('advanced-collapsed');
  const b=[...document.querySelectorAll('#SIMPLE_ACTIONS button')].find(x=>x.textContent.includes('Advanced')||x.textContent.includes('Hide advanced'));
@@ -1506,6 +1506,27 @@ document.addEventListener('DOMContentLoaded',()=>{
  // Reduce visual noise in section headings without removing functionality.
  document.querySelectorAll('h3').forEach(h=>{
    h.textContent=h.textContent.replace(/[✨✏️🖼🔗⚡⬇️☁📁✓🎨🔥◎⚙]/gu,'').trim();
+ });
+});
+</script>
+
+<script>
+function openSimpleAIBackground(){
+ const e=document.getElementById('LASER_BG_AI') || document.querySelector('[id*="AI_BACKGROUND"]');
+ if(e)e.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function openSimpleArtworkControls(){
+ if(typeof finalOpenArtworkControls==='function') finalOpenArtworkControls();
+ else document.getElementById('art')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function openSimpleEngraveControls(){
+ const e=document.getElementById('engraveToneMode') || document.getElementById('engraveDepth');
+ if(e)e.scrollIntoView({behavior:'smooth',block:'center'});
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ const art=document.getElementById('art'), st=document.getElementById('simpleBgStatus');
+ if(art && st) art.addEventListener('change',()=>{
+   st.textContent=art.files && art.files[0] ? 'Background loaded: '+art.files[0].name : 'No background selected yet.';
  });
 });
 </script>

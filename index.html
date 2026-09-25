@@ -134,7 +134,13 @@ body.simple-manual #LASER_BG_AI{display:block}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@4/lib/msal-browser.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lily+Script+One&family=Lobster&family=Pacifico&display=swap">
-</head><body><div class="app"><aside><div class="compactIntro"><b>Laser Plaque Designer</b><div class="note">Choose a template, edit the design, then download one Falcon-ready side-by-side SVG.</div></div><div class="quickBar"><button type="button" onclick="setTab(0)">Assembled Preview</button><button type="button" onclick="setTab(1)">2-Part Preview</button></div>
+</head><body><div class="app"><aside><div id="AI_PROMPT_TOP_TEST" style="display:block!important;visibility:visible!important;background:#f3e8ff;border:4px solid #6d28d9;border-radius:12px;padding:14px;margin:4px 0 16px;color:#21113b;position:relative;z-index:20">
+<div style="font-size:21px;font-weight:900">AI BACKGROUND — TESTED PROMPT LOCATION V3</div>
+<label for="topBackgroundPrompt" style="font-size:16px;margin-top:12px">Describe the image you want AI to create</label>
+<textarea id="topBackgroundPrompt" rows="5" style="display:block!important;width:100%!important;min-height:135px!important;box-sizing:border-box;background:white!important;color:#111!important;border:3px solid #6d28d9!important;font:16px Arial!important;padding:12px!important" placeholder="Example: An elephant under an acacia tree, detailed black-and-white artwork for laser engraving"></textarea>
+<button type="button" id="topBackgroundGenerate" style="display:block!important;width:100%;min-height:52px;background:#6d28d9;color:white;font-size:17px;font-weight:900" onclick="const v=document.getElementById('topBackgroundPrompt').value;document.getElementById('laserBgPrompt').value=v;document.getElementById('topBackgroundStatus').textContent='Generating…';generateLaserBackground().then(()=>{document.getElementById('topBackgroundStatus').textContent=document.getElementById('laserBgStatus').textContent}).catch(e=>{document.getElementById('topBackgroundStatus').textContent=e.message})">GENERATE MY BACKGROUND IMAGE</button>
+<div id="topBackgroundStatus" style="margin-top:8px;font-weight:bold">Enter a description above, then press Generate.</div>
+</div><div class="compactIntro"><b>Laser Plaque Designer</b><div class="note">Choose a template, edit the design, then download one Falcon-ready side-by-side SVG.</div></div><div class="quickBar"><button type="button" onclick="setTab(0)">Assembled Preview</button><button type="button" onclick="setTab(1)">2-Part Preview</button></div>
 
 <section id="V53_AI_VISIBLE" style="border:3px solid #7b3fc6;background:#faf6ff;border-radius:12px;padding:12px;margin:10px 0 14px">
 <div style="font-size:19px;font-weight:900;color:#5e2b97">✨ AI DESIGN ASSISTANT</div>

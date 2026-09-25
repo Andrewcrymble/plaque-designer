@@ -112,6 +112,20 @@ body.simple-ai #LASER_BG_AI{display:block}
 body.simple-manual #LASER_BG_AI{display:block}
 .advanced-collapsed .advancedOnly{display:none!important}
 @media(max-width:700px){#SIMPLE_START>div:nth-of-type(2){grid-template-columns:1fr!important}}
+
+/* Clean workflow edition: manual first, optional AI below, saving last. */
+#SIMPLE_ACTIONS{position:static!important;display:flex;flex-wrap:wrap}
+#SIMPLE_ACTIONS button:nth-child(4),#SIMPLE_ACTIONS button:nth-child(5){display:none!important}
+#V53_AI_VISIBLE{display:block!important}
+#realAiBox,.ai-card{display:none!important}
+#WORKFLOW_SAVE{background:#eaf7ed;border:3px solid #278349;border-radius:14px;padding:16px;margin:18px 0 22px}
+#WORKFLOW_SAVE button{min-height:43px;font-weight:800}
+#WORKFLOW_SAVE .row{margin-top:9px}
+#WORKFLOW_3D_DOWNLOADS{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#WORKFLOW_3D_DOWNLOADS button{min-height:40px}
+.workflow-heading{font-size:22px;font-weight:900;margin:15px 0 6px}
+#SIMPLE_START{border:3px solid #2374bb!important}
+#SIMPLE_BACKGROUND{border-color:#2374bb!important}
 </style>
 <style>
 #realAiBox{margin:12px 0;padding:12px;border:2px solid #6f42c1;border-radius:10px;background:#faf7ff}
@@ -119,6 +133,7 @@ body.simple-manual #LASER_BG_AI{display:block}
 #realAiResult{white-space:pre-wrap;font-size:13px;background:white;border:1px solid #ddd;border-radius:8px;padding:10px;margin-top:8px;display:none}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@4/lib/msal-browser.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lily+Script+One&family=Lobster&family=Pacifico&display=swap">
 </head><body><div class="app"><aside><div class="compactIntro"><b>Laser Plaque Designer</b><div class="note">Choose a template, edit the design, then download one Falcon-ready side-by-side SVG.</div></div><div class="quickBar"><button type="button" onclick="setTab(0)">Assembled Preview</button><button type="button" onclick="setTab(1)">2-Part Preview</button></div>
 
 <section id="V53_AI_VISIBLE" style="border:3px solid #7b3fc6;background:#faf6ff;border-radius:12px;padding:12px;margin:10px 0 14px">
@@ -169,6 +184,42 @@ body.simple-manual #LASER_BG_AI{display:block}
  You can upload your own image or generate an AI image without leaving Manual Design.
  <button type="button" onclick="simpleBackground()" style="margin-top:7px;width:100%">Choose / Generate Background Image</button>
 </div>
+</section><section id="LASER_3D_STUDIO" style="background:#111827;color:white;border-radius:14px;padding:16px;margin:14px 0">
+<h2 style="margin:0">3D Laser Engraving Studio</h2><p>Prepare photos and artwork as depth maps for relief-style engraving. This studio has its own image and wording controls.</p>
+<button onclick="document.getElementById('depthArt').click()" style="width:100%;min-height:55px">Upload image for 3D engraving</button>
+<input id="depthArt" type="file" accept="image/png,image/jpeg,image/webp" style="display:none">
+<canvas id="depthCanvas" width="800" height="800" style="width:100%;max-height:430px;object-fit:contain;background:white;margin-top:10px"></canvas>
+<div id="depthStatus">Upload an image to begin.</div>
+<div style="background:white;color:#111;padding:12px;border-radius:9px;margin:10px 0">
+ <h3 style="margin:0 0 8px">Add wording to your 3D engraving</h3>
+ <label>Engraving text</label><textarea id="dText" rows="2" placeholder="Enter wording to appear on the image" style="width:100%"></textarea>
+ <label>Text position</label><select id="dTextPosition"><option value="bottom">Bottom</option><option value="middle">Centre</option><option value="top">Top</option></select>
+ <label>Text size</label><input id="dTextSize" type="range" min="2" max="18" value="7">
+ <label>Text appearance</label><select id="dTextMode"><option value="dark">Dark engraving</option><option value="light">Light / unengraved lettering</option></select>
+ <label><input id="dTextBand" type="checkbox" style="width:auto"> Clear image behind text</label>
+ <p class="note">Text appears in the 3D preview and both 3D downloads. The original plaque designer remains a separate workspace above.</p>
+</div>
+<details open style="background:white;color:#111;padding:10px;border-radius:8px;margin-top:8px"><summary><b>Depth & image controls</b></summary>
+<label>Depth mapping</label><select id="depthMap"><option value="dark">Dark = deeper</option><option value="light">Light = deeper</option></select>
+<label>Brightness</label><input id="dBright" type="range" min="-100" max="100" value="0">
+<label>Contrast</label><input id="dContrast" type="range" min="-100" max="100" value="25">
+<label>Gamma / midtones</label><input id="dGamma" type="range" min="30" max="250" value="100">
+<label>Minimum depth</label><input id="dMin" type="range" min="0" max="80" value="0">
+<label>Maximum depth</label><input id="dMax" type="range" min="10" max="100" value="85">
+<label>Blur / smoothing</label><input id="dBlur" type="range" min="0" max="8" step=".5" value="0">
+<label>Depth levels</label><select id="dLevels"><option value="256">256 smooth</option><option>64</option><option>32</option><option>16</option><option>8</option></select>
+<label><input id="dInvert" type="checkbox" style="width:auto"> Invert depth map</label>
+<label><input id="dRemoveBg" type="checkbox" style="width:auto"> Remove near-white background</label>
+<label>Background removal threshold</label><input id="dWhite" type="range" min="180" max="255" value="245">
+</details>
+<details style="background:white;color:#111;padding:10px;border-radius:8px;margin-top:8px"><summary><b>Laser job settings</b></summary>
+<label>Material</label><select id="dMaterial"><option>Custom / test first</option><option>Wood</option><option>Slate</option><option>Coated metal</option><option>Acrylic</option><option>Leather</option></select>
+<label>Speed mm/min</label><input id="dSpeed" type="number" value="3000"><label>Maximum power %</label><input id="dPower" type="number" value="80">
+<label>Line interval mm</label><input id="dInterval" type="number" step=".01" value=".10"><label>Passes</label><input id="dPasses" type="number" value="1">
+<p class="note">Material response varies by laser and stock. Always run a test grid before the final job.</p></details>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+<button onclick="processDepth()">Update Preview</button><button onclick="downloadDepthPNG()">Download Depth PNG</button>
+<button onclick="downloadDepthSVG()">Download SVG</button><button onclick="resetDepth()">Reset</button></div>
 </section>
 
 <div id="SIMPLE_ACTIONS">
@@ -180,10 +231,45 @@ body.simple-manual #LASER_BG_AI{display:block}
  <button type="button" onclick="toggleAdvanced()">Advanced</button>
 </div>
 <section id="SIMPLE_BACKGROUND" style="display:block!important;background:#fff7e8;border:3px solid #d97706;border-radius:14px;padding:16px;margin:14px 0">
- <div style="font-size:21px;font-weight:900">BACKGROUND IMAGE</div><div style="font-weight:800;margin-top:4px">Manual design: choose your own image OR ask AI to create one.</div>
+ <div style="font-size:21px;font-weight:900">BACKGROUND IMAGE — PROMPT FIX V2</div><div style="font-weight:800;margin-top:4px">Manual design: choose your own image OR ask AI to create one.</div>
  <div class="note" style="font-size:14px;margin:5px 0 12px">Add artwork to be engraved on the BACK plate.</div>
  <button type="button" onclick="document.getElementById('art').click()" style="width:100%;min-height:72px;font-size:18px;font-weight:800;margin-bottom:9px">UPLOAD BACKGROUND IMAGE<br><small>PNG • JPG • WebP • SVG</small></button>
- <button type="button" onclick="openSimpleAIBackground()" style="width:100%;min-height:62px;font-size:17px;font-weight:800">GENERATE AI BACKGROUND IMAGE</button>
+ <section id="LASER_BG_AI" style="display:block!important;margin-top:10px;padding:11px;background:#f6f1ff;border:2px solid #7c4dde;border-radius:10px">
+  <b style="font-size:16px">🎨 DESCRIBE YOUR AI BACKGROUND HERE</b>
+  <div class="note">Creates background artwork specifically for engraving on the back plate — black & white, high contrast, clean linework and no text.</div>
+  <label for="laserBgPrompt" style="display:block;font-size:17px;font-weight:900;margin-top:12px">YOUR IMAGE DESCRIPTION / PROMPT</label><textarea id="laserBgPrompt" rows="6" style="display:block!important;visibility:visible!important;opacity:1!important;width:100%;min-height:140px;box-sizing:border-box;margin-top:8px;background:white!important;color:black!important;border:3px solid #673ab7!important;font-size:16px;padding:12px" placeholder="TYPE YOUR BACKGROUND DESCRIPTION HERE. Example: A realistic elephant standing beside a tree, black and white, suitable for laser engraving"></textarea>
+  <div class="row" style="margin-top:7px;flex-wrap:wrap">
+    <button type="button" onclick="laserBgPreset('Delicate wildflowers growing from the bottom corners, symmetrical, centre left clear for wording')">🌸 Floral</button>
+    <button type="button" onclick="laserBgPreset('Elegant leafy branches around the outer edges, centre left clear for wording')">🌿 Leaves</button>
+    <button type="button" onclick="laserBgPreset('Peaceful mountain and pine tree silhouette around the lower edge, centre left clear for wording')">⛰ Mountains</button>
+    <button type="button" onclick="laserBgPreset('Small tasteful angel wings and subtle stars around the edges, centre left clear for wording')">🪽 Memorial</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button id="laserBgGenerateBtn" type="button" onclick="generateLaserBackground()" style="background:#6c3fd1;color:#fff">✨ Generate Laser Background</button>
+    <button type="button" onclick="generateLaserBackground()">↻ Try Again</button>
+  </div>
+  
+  <div style="margin-top:10px;padding:9px;background:#fff;border:1px solid #ddd;border-radius:8px">
+    <b>🔍 Engraving Quality Preview</b>
+    <div class="note">Preview grey levels to simulate different engraving depths. This changes the artwork output when Greyscale Depth is selected.</div>
+    <div class="row" style="align-items:center">
+      <label style="min-width:115px">Engraving mode</label>
+      <select id="engraveToneMode" onchange="applyEngraveToneMode()">
+        <option value="mono">Black & White — crisp line engraving</option>
+        <option value="gray">Greyscale Depth — black + grey tones</option>
+      </select>
+    </div>
+    <div class="row" style="align-items:center">
+      <label style="min-width:115px">Depth / contrast</label>
+      <input id="engraveDepth" type="range" min="20" max="90" value="55" oninput="updateEngravePreview()">
+      <output id="engraveDepthOut">55%</output>
+    </div>
+    <div id="engraveQualityResult" class="note">✓ Crisp black-line mode selected. Best for simple line artwork.</div>
+  </div>
+
+<div id="laserBgStatus" class="note" style="margin-top:7px"><b>Laser optimisation:</b> monochrome • high contrast • clean lines • no gradients • no shadows • no text • centre kept usable.</div>
+</section>
+
  <div id="simpleBgStatus" class="note" style="margin-top:10px;font-weight:700">No background selected.</div>
  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px">
   <button type="button" onclick="centreArt()">Centre</button>
@@ -225,41 +311,7 @@ body.simple-manual #LASER_BG_AI{display:block}
 </div>
 
 
-<section id="LASER_BG_AI" style="margin-top:10px;padding:11px;background:#f6f1ff;border:2px solid #7c4dde;border-radius:10px">
-  <b style="font-size:16px">🎨 AI LASER BACKGROUND</b>
-  <div class="note">Creates background artwork specifically for engraving on the back plate — black & white, high contrast, clean linework and no text.</div>
-  <textarea id="laserBgPrompt" rows="4" style="width:100%;box-sizing:border-box;margin-top:8px" placeholder="Example: Delicate wildflowers growing from the bottom corners, leaving the centre clear for wording"></textarea>
-  <div class="row" style="margin-top:7px;flex-wrap:wrap">
-    <button type="button" onclick="laserBgPreset('Delicate wildflowers growing from the bottom corners, symmetrical, centre left clear for wording')">🌸 Floral</button>
-    <button type="button" onclick="laserBgPreset('Elegant leafy branches around the outer edges, centre left clear for wording')">🌿 Leaves</button>
-    <button type="button" onclick="laserBgPreset('Peaceful mountain and pine tree silhouette around the lower edge, centre left clear for wording')">⛰ Mountains</button>
-    <button type="button" onclick="laserBgPreset('Small tasteful angel wings and subtle stars around the edges, centre left clear for wording')">🪽 Memorial</button>
-  </div>
-  <div class="row" style="margin-top:8px">
-    <button id="laserBgGenerateBtn" type="button" onclick="generateLaserBackground()" style="background:#6c3fd1;color:#fff">✨ Generate Laser Background</button>
-    <button type="button" onclick="generateLaserBackground()">↻ Try Again</button>
-  </div>
-  
-  <div style="margin-top:10px;padding:9px;background:#fff;border:1px solid #ddd;border-radius:8px">
-    <b>🔍 Engraving Quality Preview</b>
-    <div class="note">Preview grey levels to simulate different engraving depths. This changes the artwork output when Greyscale Depth is selected.</div>
-    <div class="row" style="align-items:center">
-      <label style="min-width:115px">Engraving mode</label>
-      <select id="engraveToneMode" onchange="applyEngraveToneMode()">
-        <option value="mono">Black & White — crisp line engraving</option>
-        <option value="gray">Greyscale Depth — black + grey tones</option>
-      </select>
-    </div>
-    <div class="row" style="align-items:center">
-      <label style="min-width:115px">Depth / contrast</label>
-      <input id="engraveDepth" type="range" min="20" max="90" value="55" oninput="updateEngravePreview()">
-      <output id="engraveDepthOut">55%</output>
-    </div>
-    <div id="engraveQualityResult" class="note">✓ Crisp black-line mode selected. Best for simple line artwork.</div>
-  </div>
 
-<div id="laserBgStatus" class="note" style="margin-top:7px"><b>Laser optimisation:</b> monochrome • high contrast • clean lines • no gradients • no shadows • no text • centre kept usable.</div>
-</section>
 
 <div style="margin-top:10px;padding:10px;background:#f3edff;border-radius:9px;border:1px solid #c7a8ee">
 <b>✨ AI DESIGN</b>
@@ -338,11 +390,13 @@ body.simple-manual #LASER_BG_AI{display:block}
 <label>Main wording</label><input id="txt" value="Be Still">
 <label>Small wording</label><input id="small" value="& KNOW">
 <label>Verse/reference</label><input id="verse" value="PSALM 46:10">
-<h3 style="margin-bottom:4px">Big raised lettering</h3><label style="margin-top:8px"><input id="joinCutWords" type="checkbox" checked style="width:auto"> <b>Keep each cut word joined as one piece</b></label>
+<h3 style="margin-bottom:4px">Big raised lettering</h3><label style="margin-top:8px"><input id="autoJoinScript" type="checkbox" checked style="width:auto"> <b>Automatically weld the 4 new script fonts into one cut piece per word</b></label>
+<div class="note">The designer connects separate letter shapes (including dots on letters) before tracing the final cutting outline. Inspect the exported red outline in Falcon before cutting.</div>
+<label style="margin-top:8px"><input id="joinCutWords" type="checkbox" style="width:auto"> <b>Keep each cut word joined as one piece</b></label>
 <div class="note">Adds a small joining bridge through each large cut word so individual letters stay together after cutting. One separate piece per word.</div>
 <div class="row"><div><label>Joining bridge thickness (mm)</label><input id="wordBridge" type="number" min="0.6" max="3" step="0.1" value="1.2"></div></div>
 
-<label>Font</label><select id="font"><optgroup label="Script / Calligraphy">
+<label>Font</label><select id="font"><optgroup label="Script / Calligraphy"><option value="Pacifico">Pacifico — connected script</option><option value="Lobster">Lobster — bold connected script</option><option value="Great Vibes">Great Vibes — elegant fine script</option><option value="Lily Script One">Lily Script One — chunky script</option>
 <option value="Brush Script MT">Brush Script MT</option>
 <option value="Segoe Script">Segoe Script</option>
 <option value="Lucida Handwriting">Lucida Handwriting</option>
@@ -371,7 +425,7 @@ body.simple-manual #LASER_BG_AI{display:block}
 <div class="row"><div><label>Letter size</label><input id="fs" type="number" min="1" step="1" value="40"></div><div><label>Y position</label><input id="fy" type="number" value="73"></div></div>
 
 <h3 style="margin-bottom:4px">Small wording</h3>
-<label>Font</label><select id="font2"><optgroup label="Script / Calligraphy">
+<label>Font</label><select id="font2"><optgroup label="Script / Calligraphy"><option value="Pacifico">Pacifico — connected script</option><option value="Lobster">Lobster — bold connected script</option><option value="Great Vibes">Great Vibes — elegant fine script</option><option value="Lily Script One">Lily Script One — chunky script</option>
 <option value="Brush Script MT">Brush Script MT</option>
 <option value="Segoe Script">Segoe Script</option>
 <option value="Lucida Handwriting">Lucida Handwriting</option>
@@ -880,9 +934,9 @@ function exportVerse(cx=75){
  return `<text x="${vx}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="none" stroke="#000">${esc(q('verse').value)}</text>`;
 }
 function exportCutWords(cx=75){
- let mx=pos.main.x-10, sx=pos.small.x-10;
- return `<text x="${mx}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#1261d6">${esc(q('txt').value)}</text>
- <text x="${sx}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#1261d6">${esc(q('small').value)}</text>`;
+ const dx=cx-75;
+ return cleanCutWordPaths(q('txt').value,pos.main.x-10+dx,pos.main.y,customMainFont||q('font').value,+q('fs').value)+
+ cleanCutWordPaths(q('small').value,pos.small.x-10+dx,pos.small.y,customSmallFont||q('font2').value,+q('ss').value);
 }
 
 
@@ -956,8 +1010,112 @@ function joinedWordBridges(text,x,y,fontSize){
  return out;
 }
 
+
+// Rasterise each word separately and trace the *filled* letter silhouette into SVG paths.
+// Unlike stroked SVG <text>, these paths cannot produce font-baseline cut lines in Falcon.
+// Connect every detached opaque island to the main word silhouette, before contour tracing.
+// This creates actual merged geometry, not separate red bridge cut lines.
+function weldWordPixels(g,W,H,scale,thickness){
+ const im=g.getImageData(0,0,W,H),d=im.data,seen=new Uint8Array(W*H),parts=[];
+ const filled=i=>d[i*4+3]>=100;
+ for(let i=0;i<W*H;i++){
+  if(seen[i]||!filled(i))continue;
+  const q=[i],sample=[],bounds={minX:W,minY:H,maxX:0,maxY:0};seen[i]=1;
+  for(let k=0;k<q.length;k++){
+   const at=q[k],x=at%W,y=(at/W)|0;
+   if(k%Math.max(1,Math.floor(q.length/350))===0&&sample.length<600)sample.push([x,y]);
+   bounds.minX=Math.min(bounds.minX,x);bounds.maxX=Math.max(bounds.maxX,x);
+   bounds.minY=Math.min(bounds.minY,y);bounds.maxY=Math.max(bounds.maxY,y);
+   const nb=[x>0?at-1:-1,x<W-1?at+1:-1,y>0?at-W:-1,y<H-1?at+W:-1];
+   for(const v of nb)if(v>=0&&!seen[v]&&filled(v)){seen[v]=1;q.push(v);}
+  }
+  parts.push({pixels:q,sample,bounds});
+ }
+ if(parts.length<=1)return;
+ parts.sort((a,b)=>b.pixels.length-a.pixels.length);
+ let base=parts[0];
+ // Connect the closest sampled pixels. Every line is painted into the same bitmap as the letters.
+ g.strokeStyle='#000';g.lineCap='round';g.lineJoin='round';g.lineWidth=Math.max(1,thickness*scale);
+ for(let j=1;j<parts.length;j++){
+  const part=parts[j];let best=null,dist=Infinity;
+  const a=part.sample.length?part.sample:[[part.bounds.minX,part.bounds.minY]];
+  const b=base.sample.length?base.sample:[[base.bounds.minX,base.bounds.minY]];
+  for(const u of a)for(const v of b){const dd=(u[0]-v[0])**2+(u[1]-v[1])**2;if(dd<dist){dist=dd;best=[u,v]}}
+  if(best){g.beginPath();g.moveTo(...best[0]);g.lineTo(...best[1]);g.stroke();}
+  base.sample.push(...a.slice(0,Math.max(1,Math.floor(300/parts.length))));
+  if(base.sample.length>750)base.sample=base.sample.slice(-750);
+ }
+}
+function cleanCutWordPaths(text,centerX,baselineY,font,size){
+ const words=(text||'').trim().split(/\s+/).filter(Boolean);
+ if(!words.length)return '';
+ const scale=4, c=document.createElement('canvas'),ctx=c.getContext('2d');
+ const family=font||'Arial';
+ ctx.font=`${size*scale}px "${family.replace(/"/g,'')}", Arial`;
+ const widths=words.map(w=>ctx.measureText(w).width/scale);
+ const space=ctx.measureText(' ').width/scale;
+ const total=widths.reduce((a,b)=>a+b,0)+space*(words.length-1);
+ let x=centerX-total/2;
+ const result=[];
+ for(let wi=0;wi<words.length;wi++){
+  const word=words[wi],wmm=widths[wi],pad=8;
+  const W=Math.ceil((wmm+pad*2)*scale),H=Math.ceil((size*1.65+pad*2)*scale);
+  if(W*H>7000000)throw Error('Cut wording too large to trace; reduce font size.');
+  c.width=W;c.height=H;
+  const g=c.getContext('2d',{willReadFrequently:true});
+  g.font=`${size*scale}px "${family.replace(/"/g,'')}", Arial`;
+  g.fillStyle='#000';g.textAlign='left';g.textBaseline='alphabetic';
+  const bx=pad*scale, by=(pad+size*1.17)*scale;
+  g.fillText(word,bx,by);
+  if(document.getElementById('joinCutWords')?.checked){
+   // A narrow weld through the lower body of each word; it becomes part of the outline.
+   const thickness=Math.max(.6,Math.min(3,+document.getElementById('wordBridge')?.value||1.2));
+   g.fillRect(bx+size*.06*scale,by-size*.23*scale,
+     Math.max(0,wmm-size*.12)*scale,thickness*scale);
+  }
+  if(document.getElementById('autoJoinScript')?.checked && ['Pacifico','Lobster','Great Vibes','Lily Script One'].includes(family)){
+   weldWordPixels(g,W,H,scale,Math.max(.7,Math.min(2.2,size*.075)));
+  }
+  const data=g.getImageData(0,0,W,H).data;
+  const filled=(xx,yy)=>xx>=0&&xx<W&&yy>=0&&yy<H&&data[(yy*W+xx)*4+3]>=100;
+  // Directed edges around opaque pixels. Stitch edge chains into closed vector paths.
+  const next=new Map();
+  const add=(ax,ay,bx,by)=>{const key=ax+','+ay;let arr=next.get(key);if(!arr){arr=[];next.set(key,arr)}arr.push([bx,by]);};
+  for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){
+   if(!filled(xx,yy))continue;
+   if(!filled(xx,yy-1))add(xx,yy,xx+1,yy);
+   if(!filled(xx+1,yy))add(xx+1,yy,xx+1,yy+1);
+   if(!filled(xx,yy+1))add(xx+1,yy+1,xx,yy+1);
+   if(!filled(xx-1,yy))add(xx,yy+1,xx,yy);
+  }
+  const point=(a,b)=>`${(x+(a-bx)/scale).toFixed(3)} ${(baselineY+(b-by)/scale).toFixed(3)}`;
+  const loops=[];let guard=0;
+  while(next.size&&guard++<100000){
+   const key=next.keys().next().value,[ax,ay]=key.split(',').map(Number);
+   let cx=ax,cy=ay,points=[[cx,cy]],n=0;
+   do{
+    const k=cx+','+cy,arr=next.get(k);
+    if(!arr?.length)break;
+    const pt=arr.pop();if(!arr.length)next.delete(k);
+    [cx,cy]=pt;points.push([cx,cy]);
+   }while((cx!==ax||cy!==ay)&&++n<W*H*4);
+   if(cx!==ax||cy!==ay||points.length<8)continue;
+   // Discard duplicate collinear vertices, preserving all turns.
+   const clean=[];
+   for(let j=0;j<points.length-1;j++){
+    const a=points[(j+points.length-2)%(points.length-1)],b=points[j],z=points[(j+1)%(points.length-1)];
+    if((b[0]-a[0])*(z[1]-b[1])!==(b[1]-a[1])*(z[0]-b[0]))clean.push(b);
+   }
+   if(clean.length>=3)loops.push('M'+clean.map(pt=>point(...pt)).join(' L')+' Z');
+  }
+  result.push(`<path data-cut-word="${wi+1}" d="${loops.join(' ')}" fill="none" stroke="#ff0000" stroke-width="0.15" fill-rule="evenodd"/>`);
+  x+=wmm+space;
+ }
+ return result.join('');
+}
+
 async function buildSideBySideLaserSVG(){
- const laserArt=await exportArtForLaser(), d=shapeDims(), gap=15, rightX=d.w+gap;
+ const laserArt=await exportArtForLaser(), d=shapeDims(), gap=Math.max(2,Math.min(25,Number(document.getElementById('cutGap')?.value)||3)), rightX=d.w+gap;
  const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
  const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
  const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
@@ -965,7 +1123,10 @@ async function buildSideBySideLaserSVG(){
  // Map editor text positions (which include 20 mm preview padding) into export coordinates.
  const mx=pos.main.x-20, my=pos.main.y-20, sx=pos.small.x-20, sy=pos.small.y-20, vx=pos.verse.x-20, vy=pos.verse.y-20;
  const backPerimeter=exportBackPerimeter(d);
- const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/><text x="${mx}" y="${my}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text><text x="${sx}" y="${sy}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text>${joinedWordBridges(q('txt').value,mx,my,+q('fs').value)}${joinedWordBridges(q('small').value,sx,sy,+q('ss').value)}</g></g>`;
+ await Promise.all([document.fonts.load(`${q('fs').value}px "${customMainFont||q('font').value}"`),document.fonts.load(`${q('ss').value}px "${customSmallFont||q('font2').value}"`)]);
+ const mainPaths=cleanCutWordPaths(q('txt').value,mx,my,customMainFont||q('font').value,+q('fs').value);
+ const smallPaths=cleanCutWordPaths(q('small').value,sx,sy,customSmallFont||q('font2').value,+q('ss').value);
+ const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/>${mainPaths}${smallPaths}</g></g>`;
  const vr=verseRasterData(q('verse').value,q('font3').value,+q('vs').value);
  const refX=vx-vr.w/2, refY=vy-vr.h*0.72;
  const ref=`<g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"><image id="VERSE_REFERENCE_ENGRAVE" href="${vr.url}" x="${refX}" y="${refY}" width="${vr.w}" height="${vr.h}" preserveAspectRatio="none"/></g>`;
@@ -986,6 +1147,7 @@ async function downloadSideBySideLaserSVG(){
  }
 }
 async function buildThreeLayerSVG(){
+ await Promise.all([document.fonts.load(`${q('fs').value}px "${customMainFont||q('font').value}"`),document.fonts.load(`${q('ss').value}px "${customSmallFont||q('font2').value}"`)]);
  const laserArt=await exportArtForLaser();
  const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
  const vbY=-loopExtra, vbH=150+loopExtra;
@@ -1630,7 +1792,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script>
 function openSimpleAIBackground(){
  const e=document.getElementById('LASER_BG_AI') || document.querySelector('[id*="AI_BACKGROUND"]');
- if(e)e.scrollIntoView({behavior:'smooth',block:'start'});
+ if(e){e.style.display='block';e.scrollIntoView({behavior:'smooth',block:'nearest'});document.getElementById('laserBgPrompt')?.focus();}
 }
 function openSimpleArtworkControls(){
  if(typeof finalOpenArtworkControls==='function') finalOpenArtworkControls();
@@ -1655,5 +1817,65 @@ document.addEventListener('DOMContentLoaded',function(){
   st.textContent=(a.files&&a.files.length)?'Loaded: '+a.files[0].name:'No background selected.';
  });
 });
+</script>
+<script>
+let depthImg=null;const dq=id=>document.getElementById(id);
+dq('depthArt')?.addEventListener('change',e=>{let f=e.target.files?.[0];if(!f)return;let r=new FileReader();r.onload=()=>{let im=new Image();im.onload=()=>{depthImg=im;dq('depthStatus').textContent='Loaded '+f.name;processDepth()};im.src=r.result};r.readAsDataURL(f)});
+function processDepth(){if(!depthImg)return;let c=dq('depthCanvas'),x=c.getContext('2d'),sc=Math.min(1,1200/Math.max(depthImg.width,depthImg.height));c.width=depthImg.width*sc;c.height=depthImg.height*sc;x.filter=`blur(${+dq('dBlur').value}px)`;x.drawImage(depthImg,0,0,c.width,c.height);x.filter='none';let im=x.getImageData(0,0,c.width,c.height),d=im.data,b=+dq('dBright').value,co=+dq('dContrast').value,g=+dq('dGamma').value/100,mn=+dq('dMin').value/100,mx=+dq('dMax').value/100,lv=+dq('dLevels').value,inv=dq('dInvert').checked,light=dq('depthMap').value==='light',cf=(259*(co+255))/(255*(259-co));for(let i=0;i<d.length;i+=4){if(!d[i+3])continue;let l=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];if(dq('dRemoveBg').checked&&l>=+dq('dWhite').value){d[i+3]=0;continue}l=Math.max(0,Math.min(255,cf*(l-128)+128+b));let n=Math.pow(l/255,1/Math.max(.05,g)),dep=light?n:1-n;if(inv)dep=1-dep;dep=mn+dep*(mx-mn);let o=Math.round(255*(1-dep));if(lv<256){let st=255/(lv-1);o=Math.round(o/st)*st}d[i]=d[i+1]=d[i+2]=o}x.putImageData(im,0,0);
+ const wording=dq('dText').value.trim();
+ if(wording){
+  let lines=wording.split(/\n/).slice(0,5),size=Math.max(10,Math.round(c.width*(+dq('dTextSize').value)/100)),lineH=size*1.22;
+  x.save();x.textAlign='center';x.textBaseline='middle';x.font='bold '+size+'px Arial, sans-serif';
+  let y=dq('dTextPosition').value==='top'?c.height*.14:dq('dTextPosition').value==='middle'?c.height*.5:c.height*.84;
+  y-=((lines.length-1)*lineH)/2;
+  if(dq('dTextBand').checked){let w=Math.min(c.width*.95,Math.max(...lines.map(t=>x.measureText(t).width))+size),h=lines.length*lineH+size*.6;x.fillStyle='white';x.fillRect((c.width-w)/2,y-lineH/2-size*.3,w,h);}
+  x.fillStyle=dq('dTextMode').value==='light'?'white':'black';
+  lines.forEach((line,i)=>x.fillText(line,c.width/2,y+i*lineH,c.width*.93));x.restore();
+ }
+ dq('depthStatus').textContent='Depth map updated — dark areas represent stronger engraving in default mode.'}
+['depthMap','dBright','dContrast','dGamma','dMin','dMax','dBlur','dLevels','dInvert','dRemoveBg','dWhite','dText','dTextPosition','dTextSize','dTextMode','dTextBand'].forEach(id=>dq(id)?.addEventListener('input',processDepth));
+function downloadDepthPNG(){if(!depthImg)return alert('Upload an image first');processDepth();let a=document.createElement('a');a.href=dq('depthCanvas').toDataURL();a.download='3D_DEPTH_MAP.png';a.click()}
+function downloadDepthSVG(){if(!depthImg)return alert('Upload an image first');processDepth();let c=dq('depthCanvas'),meta={speed:+dq('dSpeed').value,power:+dq('dPower').value,interval:+dq('dInterval').value,passes:+dq('dPasses').value,material:dq('dMaterial').value};let z=`<svg xmlns="http://www.w3.org/2000/svg" width="150mm" height="150mm" viewBox="0 0 150 150"><metadata>${JSON.stringify(meta)}</metadata><image href="${c.toDataURL()}" width="150" height="150" preserveAspectRatio="xMidYMid meet"/></svg>`;let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([z],{type:'image/svg+xml'}));a.download='3D_ENGRAVE.svg';a.click()}
+function resetDepth(){dq('dBright').value=0;dq('dContrast').value=25;dq('dGamma').value=100;dq('dMin').value=0;dq('dMax').value=85;dq('dBlur').value=0;dq('dLevels').value=256;dq('dInvert').checked=false;dq('dRemoveBg').checked=false;processDepth()}
+</script>
+<script>
+/* Presentation-only reflow. Move, do not clone, controls: IDs and handlers remain intact. */
+(function organizeWorkflow(){
+ const aside=document.querySelector('.app > aside');if(!aside)return;
+ const start=document.getElementById('SIMPLE_START'),actions=document.getElementById('SIMPLE_ACTIONS');
+ const bg=document.getElementById('SIMPLE_BACKGROUND'),ai=document.getElementById('V53_AI_VISIBLE');
+ const studio=document.getElementById('LASER_3D_STUDIO');
+ const manual=document.querySelector('.manualBanner');
+ if(start&&manual)aside.insertBefore(start,manual);
+ if(actions&&start)start.after(actions);
+ if(bg&&actions)actions.after(bg);
+ // Original editor stays in its existing order. Move AI and 3D below it.
+ if(ai)aside.appendChild(ai);
+ if(studio)aside.appendChild(studio);
+ const footer=document.createElement('section');footer.id='WORKFLOW_SAVE';
+ footer.innerHTML=`<div class="workflow-heading">4. Check, download & save</div>
+ <p class="note">When you're happy with the preview, check the design and save the finished laser file.</p>
+ <div style="border:1px solid #94a3b8;border-radius:10px;padding:10px;margin:9px 0"><b>Wood-saving cut layout</b><p class="note">Back plate and front frame are packed close together in the downloaded SVG. Set a safe gap for your material and laser kerf (minimum 2 mm).</p><label for="cutGap">Space between parts (mm)</label><input id="cutGap" type="number" min="2" max="25" step="0.5" value="3"></div>
+ <button type="button" onclick="preflight()" style="width:100%">✓ Check plaque before cutting</button>
+ <div class="row"><button type="button" onclick="downloadSideBySideLaserSVG()">⬇ Download plaque SVG</button>
+ <button type="button" onclick="saveLaserJobToOneDrive()">☁ Save plaque to OneDrive</button></div>
+ <div class="row"><button type="button" onclick="saveDesignLocal()">Save editable plaque</button>
+ <button type="button" onclick="loadDesignLocal()">Load editable plaque</button></div>
+ <button type="button" onclick="refreshSavedLaserJobs()">View saved laser jobs</button>
+ <details style="margin-top:12px"><summary><b>3D engraving downloads</b></summary>
+ <div id="WORKFLOW_3D_DOWNLOADS"><button type="button" onclick="downloadDepthPNG()">Download 3D depth PNG</button>
+ <button type="button" onclick="downloadDepthSVG()">Download 3D SVG</button></div></details>
+ <div class="note" style="margin-top:10px">Laser settings embedded in SVG metadata are guidance only. Confirm settings in Falcon before running.</div>`;
+ aside.appendChild(footer);
+ // Remove duplicate top-level actions; old advanced export remains accessible lower in the editor.
+ const intro=aside.querySelector('.compactIntro');if(intro)intro.after(start);
+ // Move only the original 3D export buttons out of the studio so all main saves are at bottom.
+ if(studio){const buttons=[...studio.querySelectorAll('button')];
+   buttons.filter(b=>/^(Download Depth PNG|Download SVG)$/.test(b.textContent.trim())).forEach(b=>b.style.display='none');
+ }
+ if(ai){ai.querySelector('div[style*="font-size:19px"]')?.insertAdjacentHTML('beforebegin','<div class="workflow-heading">2. Optional: Design with AI</div>');}
+ if(studio)studio.insertAdjacentHTML('afterbegin','<div class="workflow-heading" style="color:white">3. Optional: 3D engraving</div>');
+ if(bg)bg.insertAdjacentHTML('afterbegin','<div class="workflow-heading">1. Manual design: add your background</div>');
+})();
 </script>
 </body></html>

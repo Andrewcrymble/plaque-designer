@@ -112,6 +112,20 @@ body.simple-ai #LASER_BG_AI{display:block}
 body.simple-manual #LASER_BG_AI{display:block}
 .advanced-collapsed .advancedOnly{display:none!important}
 @media(max-width:700px){#SIMPLE_START>div:nth-of-type(2){grid-template-columns:1fr!important}}
+
+/* Clean workflow edition: manual first, optional AI below, saving last. */
+#SIMPLE_ACTIONS{position:static!important;display:flex;flex-wrap:wrap}
+#SIMPLE_ACTIONS button:nth-child(4),#SIMPLE_ACTIONS button:nth-child(5){display:none!important}
+#V53_AI_VISIBLE{display:block!important}
+#realAiBox,.ai-card{display:none!important}
+#WORKFLOW_SAVE{background:#eaf7ed;border:3px solid #278349;border-radius:14px;padding:16px;margin:18px 0 22px}
+#WORKFLOW_SAVE button{min-height:43px;font-weight:800}
+#WORKFLOW_SAVE .row{margin-top:9px}
+#WORKFLOW_3D_DOWNLOADS{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#WORKFLOW_3D_DOWNLOADS button{min-height:40px}
+.workflow-heading{font-size:22px;font-weight:900;margin:15px 0 6px}
+#SIMPLE_START{border:3px solid #2374bb!important}
+#SIMPLE_BACKGROUND{border-color:#2374bb!important}
 </style>
 <style>
 #realAiBox{margin:12px 0;padding:12px;border:2px solid #6f42c1;border-radius:10px;background:#faf7ff}
@@ -374,7 +388,7 @@ body.simple-manual #LASER_BG_AI{display:block}
 <label>Main wording</label><input id="txt" value="Be Still">
 <label>Small wording</label><input id="small" value="& KNOW">
 <label>Verse/reference</label><input id="verse" value="PSALM 46:10">
-<h3 style="margin-bottom:4px">Big raised lettering</h3><label style="margin-top:8px"><input id="joinCutWords" type="checkbox" checked style="width:auto"> <b>Keep each cut word joined as one piece</b></label>
+<h3 style="margin-bottom:4px">Big raised lettering</h3><label style="margin-top:8px"><input id="joinCutWords" type="checkbox" style="width:auto"> <b>Keep each cut word joined as one piece</b></label>
 <div class="note">Adds a small joining bridge through each large cut word so individual letters stay together after cutting. One separate piece per word.</div>
 <div class="row"><div><label>Joining bridge thickness (mm)</label><input id="wordBridge" type="number" min="0.6" max="3" step="0.1" value="1.2"></div></div>
 
@@ -916,9 +930,9 @@ function exportVerse(cx=75){
  return `<text x="${vx}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="none" stroke="#000">${esc(q('verse').value)}</text>`;
 }
 function exportCutWords(cx=75){
- let mx=pos.main.x-10, sx=pos.small.x-10;
- return `<text x="${mx}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#1261d6">${esc(q('txt').value)}</text>
- <text x="${sx}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#1261d6">${esc(q('small').value)}</text>`;
+ const dx=cx-75;
+ return cleanCutWordPaths(q('txt').value,pos.main.x-10+dx,pos.main.y,customMainFont||q('font').value,+q('fs').value)+
+ cleanCutWordPaths(q('small').value,pos.small.x-10+dx,pos.small.y,customSmallFont||q('font2').value,+q('ss').value);
 }
 
 
@@ -992,8 +1006,76 @@ function joinedWordBridges(text,x,y,fontSize){
  return out;
 }
 
+
+// Rasterise each word separately and trace the *filled* letter silhouette into SVG paths.
+// Unlike stroked SVG <text>, these paths cannot produce font-baseline cut lines in Falcon.
+function cleanCutWordPaths(text,centerX,baselineY,font,size){
+ const words=(text||'').trim().split(/\s+/).filter(Boolean);
+ if(!words.length)return '';
+ const scale=4, c=document.createElement('canvas'),ctx=c.getContext('2d');
+ const family=font||'Arial';
+ ctx.font=`${size*scale}px "${family.replace(/"/g,'')}", Arial`;
+ const widths=words.map(w=>ctx.measureText(w).width/scale);
+ const space=ctx.measureText(' ').width/scale;
+ const total=widths.reduce((a,b)=>a+b,0)+space*(words.length-1);
+ let x=centerX-total/2;
+ const result=[];
+ for(let wi=0;wi<words.length;wi++){
+  const word=words[wi],wmm=widths[wi],pad=8;
+  const W=Math.ceil((wmm+pad*2)*scale),H=Math.ceil((size*1.65+pad*2)*scale);
+  if(W*H>7000000)throw Error('Cut wording too large to trace; reduce font size.');
+  c.width=W;c.height=H;
+  const g=c.getContext('2d',{willReadFrequently:true});
+  g.font=`${size*scale}px "${family.replace(/"/g,'')}", Arial`;
+  g.fillStyle='#000';g.textAlign='left';g.textBaseline='alphabetic';
+  const bx=pad*scale, by=(pad+size*1.17)*scale;
+  g.fillText(word,bx,by);
+  if(document.getElementById('joinCutWords')?.checked){
+   // A narrow weld through the lower body of each word; it becomes part of the outline.
+   const thickness=Math.max(.6,Math.min(3,+document.getElementById('wordBridge')?.value||1.2));
+   g.fillRect(bx+size*.06*scale,by-size*.23*scale,
+     Math.max(0,wmm-size*.12)*scale,thickness*scale);
+  }
+  const data=g.getImageData(0,0,W,H).data;
+  const filled=(xx,yy)=>xx>=0&&xx<W&&yy>=0&&yy<H&&data[(yy*W+xx)*4+3]>=100;
+  // Directed edges around opaque pixels. Stitch edge chains into closed vector paths.
+  const next=new Map();
+  const add=(ax,ay,bx,by)=>{const key=ax+','+ay;let arr=next.get(key);if(!arr){arr=[];next.set(key,arr)}arr.push([bx,by]);};
+  for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){
+   if(!filled(xx,yy))continue;
+   if(!filled(xx,yy-1))add(xx,yy,xx+1,yy);
+   if(!filled(xx+1,yy))add(xx+1,yy,xx+1,yy+1);
+   if(!filled(xx,yy+1))add(xx+1,yy+1,xx,yy+1);
+   if(!filled(xx-1,yy))add(xx,yy+1,xx,yy);
+  }
+  const point=(a,b)=>`${(x+(a-bx)/scale).toFixed(3)} ${(baselineY+(b-by)/scale).toFixed(3)}`;
+  const loops=[];let guard=0;
+  while(next.size&&guard++<100000){
+   const key=next.keys().next().value,[ax,ay]=key.split(',').map(Number);
+   let cx=ax,cy=ay,points=[[cx,cy]],n=0;
+   do{
+    const k=cx+','+cy,arr=next.get(k);
+    if(!arr?.length)break;
+    const pt=arr.pop();if(!arr.length)next.delete(k);
+    [cx,cy]=pt;points.push([cx,cy]);
+   }while((cx!==ax||cy!==ay)&&++n<W*H*4);
+   if(cx!==ax||cy!==ay||points.length<8)continue;
+   // Discard duplicate collinear vertices, preserving all turns.
+   const clean=[];
+   for(let j=0;j<points.length-1;j++){
+    const a=points[(j+points.length-2)%(points.length-1)],b=points[j],z=points[(j+1)%(points.length-1)];
+    if((b[0]-a[0])*(z[1]-b[1])!==(b[1]-a[1])*(z[0]-b[0]))clean.push(b);
+   }
+   if(clean.length>=3)loops.push('M'+clean.map(pt=>point(...pt)).join(' L')+' Z');
+  }
+  result.push(`<path data-cut-word="${wi+1}" d="${loops.join(' ')}" fill="none" stroke="#ff0000" stroke-width="0.15" fill-rule="evenodd"/>`);
+  x+=wmm+space;
+ }
+ return result.join('');
+}
+
 async function buildSideBySideLaserSVG(){
- const laserArt=await exportArtForLaser(), d=shapeDims(), gap=15, rightX=d.w+gap;
+ const laserArt=await exportArtForLaser(), d=shapeDims(), gap=Math.max(2,Math.min(25,Number(document.getElementById('cutGap')?.value)||3)), rightX=d.w+gap;
  const cs=+q('cutSpeed').value||350, cp=+q('cutPower').value||100;
  const is=+q('imageSpeed').value||8000, ip=+q('imagePower').value||80;
  const ls=+q('lineSpeed').value||3500, lp=+q('linePower').value||40;
@@ -1001,7 +1083,9 @@ async function buildSideBySideLaserSVG(){
  // Map editor text positions (which include 20 mm preview padding) into export coordinates.
  const mx=pos.main.x-20, my=pos.main.y-20, sx=pos.small.x-20, sy=pos.small.y-20, vx=pos.verse.x-20, vy=pos.verse.y-20;
  const backPerimeter=exportBackPerimeter(d);
- const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/><text x="${mx}" y="${my}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="none" stroke="#ff0000">${esc(q('txt').value)}</text><text x="${sx}" y="${sy}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="none" stroke="#ff0000">${esc(q('small').value)}</text>${joinedWordBridges(q('txt').value,mx,my,+q('fs').value)}${joinedWordBridges(q('small').value,sx,sy,+q('ss').value)}</g></g>`;
+ const mainPaths=cleanCutWordPaths(q('txt').value,mx,my,customMainFont||q('font').value,+q('fs').value);
+ const smallPaths=cleanCutWordPaths(q('small').value,sx,sy,customSmallFont||q('font2').value,+q('ss').value);
+ const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/>${mainPaths}${smallPaths}</g></g>`;
  const vr=verseRasterData(q('verse').value,q('font3').value,+q('vs').value);
  const refX=vx-vr.w/2, refY=vy-vr.h*0.72;
  const ref=`<g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"><image id="VERSE_REFERENCE_ENGRAVE" href="${vr.url}" x="${refX}" y="${refY}" width="${vr.w}" height="${vr.h}" preserveAspectRatio="none"/></g>`;
@@ -1711,4 +1795,45 @@ function processDepth(){if(!depthImg)return;let c=dq('depthCanvas'),x=c.getConte
 function downloadDepthPNG(){if(!depthImg)return alert('Upload an image first');processDepth();let a=document.createElement('a');a.href=dq('depthCanvas').toDataURL();a.download='3D_DEPTH_MAP.png';a.click()}
 function downloadDepthSVG(){if(!depthImg)return alert('Upload an image first');processDepth();let c=dq('depthCanvas'),meta={speed:+dq('dSpeed').value,power:+dq('dPower').value,interval:+dq('dInterval').value,passes:+dq('dPasses').value,material:dq('dMaterial').value};let z=`<svg xmlns="http://www.w3.org/2000/svg" width="150mm" height="150mm" viewBox="0 0 150 150"><metadata>${JSON.stringify(meta)}</metadata><image href="${c.toDataURL()}" width="150" height="150" preserveAspectRatio="xMidYMid meet"/></svg>`;let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([z],{type:'image/svg+xml'}));a.download='3D_ENGRAVE.svg';a.click()}
 function resetDepth(){dq('dBright').value=0;dq('dContrast').value=25;dq('dGamma').value=100;dq('dMin').value=0;dq('dMax').value=85;dq('dBlur').value=0;dq('dLevels').value=256;dq('dInvert').checked=false;dq('dRemoveBg').checked=false;processDepth()}
-</script></body></html>
+</script>
+<script>
+/* Presentation-only reflow. Move, do not clone, controls: IDs and handlers remain intact. */
+(function organizeWorkflow(){
+ const aside=document.querySelector('.app > aside');if(!aside)return;
+ const start=document.getElementById('SIMPLE_START'),actions=document.getElementById('SIMPLE_ACTIONS');
+ const bg=document.getElementById('SIMPLE_BACKGROUND'),ai=document.getElementById('V53_AI_VISIBLE');
+ const studio=document.getElementById('LASER_3D_STUDIO');
+ const manual=document.querySelector('.manualBanner');
+ if(start&&manual)aside.insertBefore(start,manual);
+ if(actions&&start)start.after(actions);
+ if(bg&&actions)actions.after(bg);
+ // Original editor stays in its existing order. Move AI and 3D below it.
+ if(ai)aside.appendChild(ai);
+ if(studio)aside.appendChild(studio);
+ const footer=document.createElement('section');footer.id='WORKFLOW_SAVE';
+ footer.innerHTML=`<div class="workflow-heading">4. Check, download & save</div>
+ <p class="note">When you're happy with the preview, check the design and save the finished laser file.</p>
+ <div style="border:1px solid #94a3b8;border-radius:10px;padding:10px;margin:9px 0"><b>Wood-saving cut layout</b><p class="note">Back plate and front frame are packed close together in the downloaded SVG. Set a safe gap for your material and laser kerf (minimum 2 mm).</p><label for="cutGap">Space between parts (mm)</label><input id="cutGap" type="number" min="2" max="25" step="0.5" value="3"></div>
+ <button type="button" onclick="preflight()" style="width:100%">✓ Check plaque before cutting</button>
+ <div class="row"><button type="button" onclick="downloadSideBySideLaserSVG()">⬇ Download plaque SVG</button>
+ <button type="button" onclick="saveLaserJobToOneDrive()">☁ Save plaque to OneDrive</button></div>
+ <div class="row"><button type="button" onclick="saveDesignLocal()">Save editable plaque</button>
+ <button type="button" onclick="loadDesignLocal()">Load editable plaque</button></div>
+ <button type="button" onclick="refreshSavedLaserJobs()">View saved laser jobs</button>
+ <details style="margin-top:12px"><summary><b>3D engraving downloads</b></summary>
+ <div id="WORKFLOW_3D_DOWNLOADS"><button type="button" onclick="downloadDepthPNG()">Download 3D depth PNG</button>
+ <button type="button" onclick="downloadDepthSVG()">Download 3D SVG</button></div></details>
+ <div class="note" style="margin-top:10px">Laser settings embedded in SVG metadata are guidance only. Confirm settings in Falcon before running.</div>`;
+ aside.appendChild(footer);
+ // Remove duplicate top-level actions; old advanced export remains accessible lower in the editor.
+ const intro=aside.querySelector('.compactIntro');if(intro)intro.after(start);
+ // Move only the original 3D export buttons out of the studio so all main saves are at bottom.
+ if(studio){const buttons=[...studio.querySelectorAll('button')];
+   buttons.filter(b=>/^(Download Depth PNG|Download SVG)$/.test(b.textContent.trim())).forEach(b=>b.style.display='none');
+ }
+ if(ai){ai.querySelector('div[style*="font-size:19px"]')?.insertAdjacentHTML('beforebegin','<div class="workflow-heading">2. Optional: Design with AI</div>');}
+ if(studio)studio.insertAdjacentHTML('afterbegin','<div class="workflow-heading" style="color:white">3. Optional: 3D engraving</div>');
+ if(bg)bg.insertAdjacentHTML('afterbegin','<div class="workflow-heading">1. Manual design: add your background</div>');
+})();
+</script>
+</body></html>

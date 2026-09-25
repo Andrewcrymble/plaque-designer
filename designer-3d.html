@@ -133,6 +133,7 @@ body.simple-manual #LASER_BG_AI{display:block}
 #realAiResult{white-space:pre-wrap;font-size:13px;background:white;border:1px solid #ddd;border-radius:8px;padding:10px;margin-top:8px;display:none}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@4/lib/msal-browser.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lily+Script+One&family=Lobster&family=Pacifico&display=swap">
 </head><body><div class="app"><aside><div class="compactIntro"><b>Laser Plaque Designer</b><div class="note">Choose a template, edit the design, then download one Falcon-ready side-by-side SVG.</div></div><div class="quickBar"><button type="button" onclick="setTab(0)">Assembled Preview</button><button type="button" onclick="setTab(1)">2-Part Preview</button></div>
 
 <section id="V53_AI_VISIBLE" style="border:3px solid #7b3fc6;background:#faf6ff;border-radius:12px;padding:12px;margin:10px 0 14px">
@@ -388,11 +389,13 @@ body.simple-manual #LASER_BG_AI{display:block}
 <label>Main wording</label><input id="txt" value="Be Still">
 <label>Small wording</label><input id="small" value="& KNOW">
 <label>Verse/reference</label><input id="verse" value="PSALM 46:10">
-<h3 style="margin-bottom:4px">Big raised lettering</h3><label style="margin-top:8px"><input id="joinCutWords" type="checkbox" style="width:auto"> <b>Keep each cut word joined as one piece</b></label>
+<h3 style="margin-bottom:4px">Big raised lettering</h3><label style="margin-top:8px"><input id="autoJoinScript" type="checkbox" checked style="width:auto"> <b>Automatically weld the 4 new script fonts into one cut piece per word</b></label>
+<div class="note">The designer connects separate letter shapes (including dots on letters) before tracing the final cutting outline. Inspect the exported red outline in Falcon before cutting.</div>
+<label style="margin-top:8px"><input id="joinCutWords" type="checkbox" style="width:auto"> <b>Keep each cut word joined as one piece</b></label>
 <div class="note">Adds a small joining bridge through each large cut word so individual letters stay together after cutting. One separate piece per word.</div>
 <div class="row"><div><label>Joining bridge thickness (mm)</label><input id="wordBridge" type="number" min="0.6" max="3" step="0.1" value="1.2"></div></div>
 
-<label>Font</label><select id="font"><optgroup label="Script / Calligraphy">
+<label>Font</label><select id="font"><optgroup label="Script / Calligraphy"><option value="Pacifico">Pacifico — connected script</option><option value="Lobster">Lobster — bold connected script</option><option value="Great Vibes">Great Vibes — elegant fine script</option><option value="Lily Script One">Lily Script One — chunky script</option>
 <option value="Brush Script MT">Brush Script MT</option>
 <option value="Segoe Script">Segoe Script</option>
 <option value="Lucida Handwriting">Lucida Handwriting</option>
@@ -421,7 +424,7 @@ body.simple-manual #LASER_BG_AI{display:block}
 <div class="row"><div><label>Letter size</label><input id="fs" type="number" min="1" step="1" value="40"></div><div><label>Y position</label><input id="fy" type="number" value="73"></div></div>
 
 <h3 style="margin-bottom:4px">Small wording</h3>
-<label>Font</label><select id="font2"><optgroup label="Script / Calligraphy">
+<label>Font</label><select id="font2"><optgroup label="Script / Calligraphy"><option value="Pacifico">Pacifico — connected script</option><option value="Lobster">Lobster — bold connected script</option><option value="Great Vibes">Great Vibes — elegant fine script</option><option value="Lily Script One">Lily Script One — chunky script</option>
 <option value="Brush Script MT">Brush Script MT</option>
 <option value="Segoe Script">Segoe Script</option>
 <option value="Lucida Handwriting">Lucida Handwriting</option>
@@ -1009,6 +1012,39 @@ function joinedWordBridges(text,x,y,fontSize){
 
 // Rasterise each word separately and trace the *filled* letter silhouette into SVG paths.
 // Unlike stroked SVG <text>, these paths cannot produce font-baseline cut lines in Falcon.
+// Connect every detached opaque island to the main word silhouette, before contour tracing.
+// This creates actual merged geometry, not separate red bridge cut lines.
+function weldWordPixels(g,W,H,scale,thickness){
+ const im=g.getImageData(0,0,W,H),d=im.data,seen=new Uint8Array(W*H),parts=[];
+ const filled=i=>d[i*4+3]>=100;
+ for(let i=0;i<W*H;i++){
+  if(seen[i]||!filled(i))continue;
+  const q=[i],sample=[],bounds={minX:W,minY:H,maxX:0,maxY:0};seen[i]=1;
+  for(let k=0;k<q.length;k++){
+   const at=q[k],x=at%W,y=(at/W)|0;
+   if(k%Math.max(1,Math.floor(q.length/350))===0&&sample.length<600)sample.push([x,y]);
+   bounds.minX=Math.min(bounds.minX,x);bounds.maxX=Math.max(bounds.maxX,x);
+   bounds.minY=Math.min(bounds.minY,y);bounds.maxY=Math.max(bounds.maxY,y);
+   const nb=[x>0?at-1:-1,x<W-1?at+1:-1,y>0?at-W:-1,y<H-1?at+W:-1];
+   for(const v of nb)if(v>=0&&!seen[v]&&filled(v)){seen[v]=1;q.push(v);}
+  }
+  parts.push({pixels:q,sample,bounds});
+ }
+ if(parts.length<=1)return;
+ parts.sort((a,b)=>b.pixels.length-a.pixels.length);
+ let base=parts[0];
+ // Connect the closest sampled pixels. Every line is painted into the same bitmap as the letters.
+ g.strokeStyle='#000';g.lineCap='round';g.lineJoin='round';g.lineWidth=Math.max(1,thickness*scale);
+ for(let j=1;j<parts.length;j++){
+  const part=parts[j];let best=null,dist=Infinity;
+  const a=part.sample.length?part.sample:[[part.bounds.minX,part.bounds.minY]];
+  const b=base.sample.length?base.sample:[[base.bounds.minX,base.bounds.minY]];
+  for(const u of a)for(const v of b){const dd=(u[0]-v[0])**2+(u[1]-v[1])**2;if(dd<dist){dist=dd;best=[u,v]}}
+  if(best){g.beginPath();g.moveTo(...best[0]);g.lineTo(...best[1]);g.stroke();}
+  base.sample.push(...a.slice(0,Math.max(1,Math.floor(300/parts.length))));
+  if(base.sample.length>750)base.sample=base.sample.slice(-750);
+ }
+}
 function cleanCutWordPaths(text,centerX,baselineY,font,size){
  const words=(text||'').trim().split(/\s+/).filter(Boolean);
  if(!words.length)return '';
@@ -1035,6 +1071,9 @@ function cleanCutWordPaths(text,centerX,baselineY,font,size){
    const thickness=Math.max(.6,Math.min(3,+document.getElementById('wordBridge')?.value||1.2));
    g.fillRect(bx+size*.06*scale,by-size*.23*scale,
      Math.max(0,wmm-size*.12)*scale,thickness*scale);
+  }
+  if(document.getElementById('autoJoinScript')?.checked && ['Pacifico','Lobster','Great Vibes','Lily Script One'].includes(family)){
+   weldWordPixels(g,W,H,scale,Math.max(.7,Math.min(2.2,size*.075)));
   }
   const data=g.getImageData(0,0,W,H).data;
   const filled=(xx,yy)=>xx>=0&&xx<W&&yy>=0&&yy<H&&data[(yy*W+xx)*4+3]>=100;
@@ -1083,6 +1122,7 @@ async function buildSideBySideLaserSVG(){
  // Map editor text positions (which include 20 mm preview padding) into export coordinates.
  const mx=pos.main.x-20, my=pos.main.y-20, sx=pos.small.x-20, sy=pos.small.y-20, vx=pos.verse.x-20, vy=pos.verse.y-20;
  const backPerimeter=exportBackPerimeter(d);
+ await Promise.all([document.fonts.load(`${q('fs').value}px "${customMainFont||q('font').value}"`),document.fonts.load(`${q('ss').value}px "${customSmallFont||q('font2').value}"`)]);
  const mainPaths=cleanCutWordPaths(q('txt').value,mx,my,customMainFont||q('font').value,+q('fs').value);
  const smallPaths=cleanCutWordPaths(q('small').value,sx,sy,customSmallFont||q('font2').value,+q('ss').value);
  const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/>${mainPaths}${smallPaths}</g></g>`;
@@ -1106,6 +1146,7 @@ async function downloadSideBySideLaserSVG(){
  }
 }
 async function buildThreeLayerSVG(){
+ await Promise.all([document.fonts.load(`${q('fs').value}px "${customMainFont||q('font').value}"`),document.fonts.load(`${q('ss').value}px "${customSmallFont||q('font2').value}"`)]);
  const laserArt=await exportArtForLaser();
  const loopExtra=q('loopOn').checked ? Math.max(6,+q('loopH').value||14) : 0;
  const vbY=-loopExtra, vbH=150+loopExtra;

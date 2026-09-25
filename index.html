@@ -134,7 +134,21 @@ body.simple-manual #LASER_BG_AI{display:block}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@4/lib/msal-browser.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lily+Script+One&family=Lobster&family=Pacifico&display=swap">
-</head><body><div class="app"><aside><div id="AI_PROMPT_TOP_TEST" style="display:block!important;visibility:visible!important;background:#f3e8ff;border:4px solid #6d28d9;border-radius:12px;padding:14px;margin:4px 0 16px;color:#21113b;position:relative;z-index:20">
+<style id="SIMPLE_WIFE_STYLE">
+body{background:#edf2f6}aside{width:390px!important;box-sizing:border-box;scroll-behavior:smooth}main{min-width:0}
+#WIFE_NAV{position:sticky;top:0;background:#fff;z-index:80;padding:10px;border-bottom:2px solid #d7e3ee;display:flex;gap:5px;flex-wrap:wrap}
+#WIFE_NAV button{width:auto;flex:1;min-width:65px;padding:11px 4px;background:#edf5fd;border:1px solid #bed1e4;border-radius:8px;color:#143957;font-weight:700}
+.wife-stage{background:#fff;border:1px solid #d8e2eb;border-radius:13px;padding:15px;margin:13px 0;box-shadow:0 2px 8px #102b4510}
+.wife-stage h2{font-size:20px;color:#143957;margin:0 0 6px}.wife-stage p{font-size:13px;color:#4b6071;line-height:1.4}
+.wife-stage label{font-size:13px}.wife-stage input:not([type=checkbox]),.wife-stage select,.wife-stage textarea{box-sizing:border-box;width:100%;min-width:0;padding:9px;font-size:15px;border:1px solid #c3cfdb;border-radius:7px}
+.wife-stage button{cursor:pointer;min-height:40px;border-radius:7px}.wife-primary{background:#205e9c!important;color:white!important;font-weight:800}
+.wife-stage details{margin:9px 0;border:1px solid #d8e2eb;border-radius:9px;padding:9px}.wife-stage summary{font-weight:700;cursor:pointer;padding:5px}
+#wifeLibraryGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.wife-thumb{border:1px solid #ccd7e2;border-radius:8px;padding:7px;min-width:0}.wife-thumb img{width:100%;height:105px;object-fit:contain;background:#f5f5f5}.wife-thumb small{display:block;overflow-wrap:anywhere;font-size:11px;min-height:32px}
+#SIMPLE_BACKGROUND{display:block!important;padding:9px!important;border:0!important;box-shadow:none!important;margin:0!important}#SIMPLE_BACKGROUND>div:first-child{display:none}
+#SIMPLE_BACKGROUND #laserBgPrompt{min-height:105px!important}#SIMPLE_BACKGROUND button{font-size:13px!important}
+#LASER_3D_STUDIO{margin:0!important}#WIFE_VAULT{display:none!important}
+@media(max-width:900px){aside{width:100%!important}main{width:100%!important}}
+</style></head><body><div class="app"><aside><div id="AI_PROMPT_TOP_TEST" style="display:block!important;visibility:visible!important;background:#f3e8ff;border:4px solid #6d28d9;border-radius:12px;padding:14px;margin:4px 0 16px;color:#21113b;position:relative;z-index:20">
 <div style="font-size:21px;font-weight:900">AI BACKGROUND — TESTED PROMPT LOCATION V3</div>
 <label for="topBackgroundPrompt" style="font-size:16px;margin-top:12px">Describe the image you want AI to create</label>
 <textarea id="topBackgroundPrompt" rows="5" style="display:block!important;width:100%!important;min-height:135px!important;box-sizing:border-box;background:white!important;color:#111!important;border:3px solid #6d28d9!important;font:16px Arial!important;padding:12px!important" placeholder="Example: An elephant under an acacia tree, detailed black-and-white artwork for laser engraving"></textarea>
@@ -1460,7 +1474,8 @@ async function v53ArtworkAI(){
   v53Result('Generating engraving artwork…');
   const j=await v53Post('/api/artwork',{prompt:v53Idea.artwork_prompt});
   const r=await fetch(j.data_url),blob=await r.blob(),fr=new FileReader();
-  fr.onload=()=>{const im=new Image();im.onload=()=>{artSource={type:'raster',data:fr.result,w:im.naturalWidth,h:im.naturalHeight};rebuildArtwork();q('v53AiStatus').textContent='✓ Artwork loaded into the engraving layer.';v53Result(v53Idea);};im.src=fr.result;};
+  fr.onload=()=>{const im=new Image();im.onload=()=>{artSource={type:'raster',data:fr.result,w:im.naturalWidth,h:im.naturalHeight};
+       if(typeof saveAiArtToLibrary==='function')saveAiArtToLibrary(fr.result,user);rebuildArtwork();q('v53AiStatus').textContent='✓ Artwork loaded into the engraving layer.';v53Result(v53Idea);};im.src=fr.result;};
   fr.readAsDataURL(blob);
  }catch(e){v53Result('AI error: '+e.message);}
 }
@@ -1884,4 +1899,52 @@ function resetDepth(){dq('dBright').value=0;dq('dContrast').value=25;dq('dGamma'
  if(bg)bg.insertAdjacentHTML('afterbegin','<div class="workflow-heading">1. Manual design: add your background</div>');
 })();
 </script>
-</body></html>
+<script id="WIFE_SIMPLE_SCRIPT">
+(function(){
+ const by=id=>document.getElementById(id);
+ const stage=(id,title,help)=>{const x=document.createElement('section');x.id=id;x.className='wife-stage';x.innerHTML='<h2>'+title+'</h2><p>'+help+'</p>';return x};
+ const el=(tag,props={},text='')=>{const x=document.createElement(tag);Object.assign(x,props);if(text)x.textContent=text;return x};
+ const label=(text,control)=>{let l=el('label',{},text);l.append(control);return l};
+ function proxy(id,name,parent){let orig=by(id);if(!orig)return;let cp=orig.cloneNode(true);cp.id='wife_'+id;cp.removeAttribute('oninput');cp.removeAttribute('onchange');cp.removeAttribute('onclick');cp.value=orig.value;
+  const sync=()=>{orig.value=cp.value;orig.dispatchEvent(new Event('input',{bubbles:true}));orig.dispatchEvent(new Event('change',{bubbles:true}));};cp.addEventListener('input',sync);cp.addEventListener('change',sync);orig.addEventListener('input',()=>{if(document.activeElement!==cp)cp.value=orig.value});orig.addEventListener('change',()=>{if(document.activeElement!==cp)cp.value=orig.value});parent.append(label(name,cp));return cp;}
+ window.addEventListener('DOMContentLoaded',()=>{
+ const aside=document.querySelector('aside');if(!aside)return;
+ const vault=el('div',{id:'WIFE_VAULT'});while(aside.firstChild)vault.append(aside.firstChild);aside.append(vault);
+ const nav=el('nav',{id:'WIFE_NAV'});aside.insertBefore(nav,vault);
+ const design=stage('wifeDesign','1. Design your plaque','Choose the shape and enter your wording. Your changes appear in the preview.');
+ const bg=stage('wifeBackground','2. Choose your background','Upload your own picture, generate a new AI image, or reuse one you saved earlier.');
+ const three=stage('wife3D','3. Optional 3D engraving','Only open this if you want to prepare a depth-map image.');
+ const save=stage('wifeSave','4. Check, save & download','Review your design, then save your files or download the laser-ready SVG.');
+ for(const x of [design,bg,three,save])aside.insertBefore(x,vault);
+ for(const [id,caption] of [['wifeDesign','Design'],['wifeBackground','Background'],['wife3D','3D'],['wifeSave','Save']]){const b=el('button',{},caption);b.onclick=()=>by(id).scrollIntoView({behavior:'smooth',block:'start'});nav.append(b)}
+ proxy('outerShape','Shape',design);proxy('shapeW','Width (mm)',design);proxy('shapeH','Height (mm)',design);
+ proxy('txt','Main wording',design);proxy('font','Main font',design);proxy('fs','Main lettering size',design);
+ proxy('small','Second line (optional)',design);proxy('font2','Second-line font',design);proxy('ss','Second-line size',design);
+ proxy('verse','Verse / reference (optional)',design);
+ const more=el('details');more.innerHTML='<summary>More lettering & plaque settings</summary>';design.append(more);
+ for(const [id,n] of [['vy','Verse vertical position'],['vs','Verse size'],['frameInset','Frame width (mm)'],['artBrightness','Background lighter / darker'],['wordBridge','Optional bridge thickness']])proxy(id,n,more);
+ let clear=by('clearVerseBg');if(clear){let l=el('label',{},'Clear background behind verse ');let cb=el('input',{type:'checkbox',checked:clear.checked});cb.style.width='auto';cb.onchange=()=>{clear.checked=cb.checked;clear.dispatchEvent(new Event('input',{bubbles:true}));if(typeof draw==='function')draw()};l.prepend(cb);more.append(l)}
+ const originalBg=by('SIMPLE_BACKGROUND');if(originalBg)bg.append(originalBg);
+ const gallery=el('details',{open:true});gallery.innerHTML='<summary>My saved AI backgrounds</summary><p>Saved on this browser and device. Reuse them with one click. Export a backup if you need them on another computer.</p><div id="wifeLibraryStatus" role="status"></div><div id="wifeLibraryGrid"></div>';
+ const row=el('div');row.style.cssText='display:flex;gap:7px;flex-wrap:wrap';let backup=el('button',{},'Download library backup');backup.onclick=exportAiLibrary;row.append(backup);let restore=el('button',{},'Import library backup');let file=el('input',{type:'file',accept:'application/json'});file.style.display='none';restore.onclick=()=>file.click();file.onchange=()=>importAiLibrary(file.files[0]);row.append(restore,file);gallery.append(row);bg.append(gallery);
+ const ai=el('details');ai.innerHTML='<summary>Optional: ask AI to suggest a complete plaque</summary>';let aiOld=by('V53_AI_VISIBLE');if(aiOld)ai.append(aiOld);bg.append(ai);
+ const uploadNote=el('p',{},'Tip: AI backgrounds are saved automatically after generation. Pictures uploaded manually can be saved too.');bg.append(uploadNote);
+ const add=el('button',{},'Save current background to my library');add.onclick=()=>{if(typeof artSource==='undefined'||!artSource||artSource.type!=='raster')return alert('Please load a background image first.');saveAiArtToLibrary(artSource.data,'My uploaded background')};bg.append(add);
+ let studio=by('LASER_3D_STUDIO');let fold=el('details');fold.innerHTML='<summary>Open the 3D engraving studio</summary>';if(studio)fold.append(studio);three.append(fold);
+ // Move actual existing save/export controls, not clones: their original event handlers remain intact.
+ const saved=el('div');let btns=[...vault.querySelectorAll('button')].filter(b=>/download.*svg|save.*onedrive|download.*layer|save.*project|export.*svg/i.test((b.textContent||'')+' '+(b.getAttribute('onclick')||'')));
+ const seen=new Set();for(const b of btns){const k=b.getAttribute('onclick')||b.textContent.trim();if(seen.has(k))continue;seen.add(k);saved.append(b);if(seen.size>=11)break}save.append(saved);
+ if(!saved.children.length){let b=el('button',{className:'wife-primary'},'Download Falcon SVG');b.onclick=()=>{if(typeof downloadSideBySideLaserSVG==='function')downloadSideBySideLaserSVG()};save.append(b)}
+ let status=by('downloadStatus');if(status)save.append(status);
+ const advanced=el('details');advanced.innerHTML='<summary>Advanced original controls</summary><p>Use these only when you need detailed adjustments.</p>';const show=el('button',{},'Show original advanced controls');show.onclick=()=>{vault.style.setProperty('display','block','important');vault.style.position='static';vault.scrollIntoView({behavior:'smooth'})};advanced.append(show);save.append(advanced);
+ renderAiLibrary();
+ });
+})();
+const AI_DB='PlaqueDesignerArtLibrary', AI_STORE='backgrounds';
+function aiDb(){return new Promise((resolve,reject)=>{let req=indexedDB.open(AI_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(AI_STORE))req.result.createObjectStore(AI_STORE,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function aiItems(){let db=await aiDb();return new Promise((resolve,reject)=>{let tx=db.transaction(AI_STORE,'readonly'),r=tx.objectStore(AI_STORE).getAll();r.onsuccess=()=>{db.close();resolve(r.result.sort((a,b)=>b.id-a.id))};r.onerror=()=>{db.close();reject(r.error)}})}
+async function saveAiArtToLibrary(data,prompt){try{let db=await aiDb();let entry={id:Date.now()+Math.random(),date:new Date().toISOString(),prompt:prompt||'Background',data};await new Promise((ok,no)=>{let tx=db.transaction(AI_STORE,'readwrite');tx.objectStore(AI_STORE).put(entry);tx.oncomplete=ok;tx.onerror=()=>no(tx.error)});db.close();renderAiLibrary()}catch(e){let x=document.getElementById('wifeLibraryStatus');if(x)x.textContent='Could not save image: '+e.message}}
+async function renderAiLibrary(){let grid=document.getElementById('wifeLibraryGrid'),status=document.getElementById('wifeLibraryStatus');if(!grid)return;try{let items=await aiItems();grid.replaceChildren();if(status)status.textContent=items.length+' saved background(s) on this device';for(let it of items){let card=document.createElement('div');card.className='wife-thumb';let img=document.createElement('img');img.src=it.data;img.alt=it.prompt;card.append(img);let name=document.createElement('small');name.textContent=it.prompt;card.append(name);let use=document.createElement('button');use.textContent='Use this image';use.onclick=()=>{let im=new Image();im.onload=()=>{artSource={type:'raster',data:it.data,w:im.naturalWidth,h:im.naturalHeight};if(typeof rebuildArtwork==='function')rebuildArtwork();if(typeof centreArt==='function')centreArt();document.getElementById('wifeBackground').scrollIntoView({behavior:'smooth'});};im.src=it.data};card.append(use);let del=document.createElement('button');del.textContent='Delete';del.onclick=async()=>{if(!confirm('Delete this saved background?'))return;let db=await aiDb();let tx=db.transaction(AI_STORE,'readwrite');tx.objectStore(AI_STORE).delete(it.id);tx.oncomplete=()=>{db.close();renderAiLibrary()}};card.append(del);grid.append(card)}}catch(e){if(status)status.textContent='Image library error: '+e.message}}
+async function exportAiLibrary(){let items=await aiItems(),a=document.createElement('a');let u=URL.createObjectURL(new Blob([JSON.stringify({version:1,items})],{type:'application/json'}));a.href=u;a.download='plaque-background-library-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),10000)}
+async function importAiLibrary(file){if(!file)return;try{let json=JSON.parse(await file.text());if(!Array.isArray(json.items))throw Error('Not a valid library backup');let db=await aiDb(),tx=db.transaction(AI_STORE,'readwrite');for(let item of json.items){if(typeof item.data==='string'&&item.data.startsWith('data:image/'))tx.objectStore(AI_STORE).put(item)}tx.oncomplete=()=>{db.close();renderAiLibrary()};tx.onerror=()=>alert('Could not import backup')}catch(e){alert('Import failed: '+e.message)}}
+</script></body></html>

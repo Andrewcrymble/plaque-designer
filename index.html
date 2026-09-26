@@ -275,8 +275,8 @@ body{background:#edf2f6}aside{width:390px!important;box-sizing:border-box;scroll
     <div class="row" style="align-items:center">
       <label style="min-width:115px">Engraving mode</label>
       <select id="engraveToneMode" onchange="applyEngraveToneMode()">
-        <option value="mono">Black & White — crisp line engraving</option>
-        <option value="gray">Greyscale Depth — black + grey tones</option>
+        <option value="mono">High contrast — logos / silhouettes</option><option value="jarvis" selected>Jarvis dithering — recommended for detailed wood engraving</option>
+        <option value="gray">Photographic greyscale — preserve light and shade</option>
       </select>
     </div>
     <div class="row" style="align-items:center">
@@ -284,7 +284,11 @@ body{background:#edf2f6}aside{width:390px!important;box-sizing:border-box;scroll
       <input id="engraveDepth" type="range" min="20" max="90" value="55" oninput="updateEngravePreview()">
       <output id="engraveDepthOut">55%</output>
     </div>
-    <div id="engraveQualityResult" class="note">✓ Crisp black-line mode selected. Best for simple line artwork.</div>
+    <label>Detail / contrast <input id="imageContrast" type="range" min="-60" max="80" value="12" oninput="refreshEngravePreview()"></label>
+<label>Image brightness <input id="imageLight" type="range" min="-80" max="80" value="12" oninput="refreshEngravePreview()"></label>
+<button type="button" onclick="refreshEngravePreview()">Preview actual export image</button>
+<div style="background:white;border:1px solid #aaa;border-radius:8px;padding:6px"><img id="actualEngravePreview" alt="Engraving output preview" style="width:100%;max-height:260px;object-fit:contain"><div class="note">This preview shows the actual processed raster sent to the SVG. Check it BEFORE cutting or engraving.</div></div>
+<div id="engraveQualityResult" class="note">Jarvis dithering selected. Preview the processed image before engraving.</div>
   </div>
 
 <div id="laserBgStatus" class="note" style="margin-top:7px"><b>Laser optimisation:</b> monochrome • high contrast • clean lines • no gradients • no shadows • no text • centre kept usable.</div>
@@ -483,6 +487,12 @@ body{background:#edf2f6}aside{width:390px!important;box-sizing:border-box;scroll
 <option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option>
 <option value="Segoe Script">Segoe Script</option><option value="Brush Script MT">Brush Script MT</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Courier New" selected>Courier New</option>
 </select>
+<div style="padding:9px;border:2px solid #2874a6;border-radius:8px;margin:8px 0;background:#eff8ff">
+<b>Verse / reference engraving</b><br>
+<label>Boldness</label><select id="verseWeight"><option value="400">Regular</option><option value="600">Semi-bold</option><option value="700">Bold</option><option value="900">Extra bold</option></select>
+<label>Extra stroke thickness (mm)</label><input id="verseStroke" type="number" min="0" max="0.5" step="0.05" value="0">
+<div class="note">The verse/reference exports on its own separate black ENGRAVE layer, independent of the background image and red cutting paths.</div>
+</div>
 <div class="row"><div><label>Letter size</label><input id="vs" type="number" min="1" step=".5" value="10"></div><div><label>Y position</label><input id="vy" type="number" value="133"></div></div>
 <label style="margin-top:8px"><input id="clearVerseBg" type="checkbox" checked style="width:auto"> <b>Clear background behind verse/reference</b></label>
 <button type="button" onclick="previewCleanedArtwork()" style="width:100%;margin-top:6px;font-weight:800">APPLY / PREVIEW CLEAR VERSE AREA</button>
@@ -608,7 +618,7 @@ function aiApply(){if(!aiLast)return; q('txt').value=aiLast.main;q('small').valu
 
 let customMainFont='', customSmallFont='';
 const q=x=>document.getElementById(x);
-['txt','small','verse','font','font2','font3','fs','ss','vs','as','ao','artFit','artCentreMode','artX','artY','cBack','cRing','cMain','cSmall','cVerse','cArt','loopOn','loopW','loopH','holeD','loopX','outerShape','frameInset','shapeW','shapeH','joinCutWords','wordBridge','artBrightness','clearVerseBg','verseClearW','verseClearH'].forEach(x=>q(x).addEventListener('input',draw));
+['txt','small','verse','font','font2','font3','verseWeight','verseStroke','fs','ss','vs','as','ao','artFit','artCentreMode','artX','artY','cBack','cRing','cMain','cSmall','cVerse','cArt','loopOn','loopW','loopH','holeD','loopX','outerShape','frameInset','shapeW','shapeH','joinCutWords','wordBridge','artBrightness','clearVerseBg','verseClearW','verseClearH'].forEach(x=>q(x).addEventListener('input',draw));
 q('font').addEventListener('change',()=>{customMainFont='';});
 q('font2').addEventListener('change',()=>{customSmallFont='';});
 function applyCustomFont(){customMainFont=q('customFont').value.trim();draw();}
@@ -725,7 +735,7 @@ function artGroup(cx=75, cy=75){
 }
 let pos={main:{x:85,y:73},small:{x:85,y:102},verse:{x:85,y:113},art:{x:0,y:0}};
 function lettering(cx=85){return `<g class="letter"><text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}">${esc(q('txt').value)}</text></g>`}
-function engraving(cx=85,cy=85){return `<g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g><g class="engrave"><text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text><text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}">${esc(q('verse').value)}</text></g>`}
+function engraving(cx=85,cy=85){return `<g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g><g class="engrave"><text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}">${esc(q('small').value)}</text><text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-weight="${q('verseWeight').value}" stroke="${q('cVerse').value}" stroke-width="${q('verseStroke').value}" paint-order="stroke fill" font-size="${q('vs').value}">${esc(q('verse').value)}</text></g>`}
 function esc(s){return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
 function ringOuterPath(cx=85, cy=85, r=75, preview=true){
  // One continuous outer cut path: circle -> left shoulder -> loop -> right shoulder -> circle.
@@ -776,13 +786,13 @@ function draw(){
     ${shapeEl(pad,pad,d.w,d.h,q('cRing').value)}
     ${shapeEl(pad+inset,pad+inset,d.w-2*inset,d.h-2*inset,'#fff')}
     <g style="color:${q('cArt').value}" stroke="${q('cArt').value}"><g id="drag-art" class="draggable" data-key="art">${artGroup(cx,cy)}</g></g>
-    <text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text>
+    <text id="drag-verse" class="draggable" data-key="verse" x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-weight="${q('verseWeight').value}" stroke="${q('cVerse').value}" stroke-width="${q('verseStroke').value}" paint-order="stroke fill" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text>
     <text id="drag-main" class="draggable" data-key="main" x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="${q('cMain').value}">${esc(q('txt').value)}</text>
     <text id="drag-small" class="draggable" data-key="small" x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="${q('cSmall').value}">${esc(q('small').value)}</text>`;
  }else{
    let gap=20, total=d.w*2+gap+pad*2, right=pad+d.w+gap;
    s.setAttribute('viewBox',`0 0 ${total} ${d.h+pad*2}`);
-   s.innerHTML=`<g>${backTagSVG(cx,pad,true)}${shapeEl(pad,pad,d.w,d.h,q('cBack').value)}<g style="color:${q('cArt').value}">${artGroup(cx,cy)}</g><text x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text></g>
+   s.innerHTML=`<g>${backTagSVG(cx,pad,true)}${shapeEl(pad,pad,d.w,d.h,q('cBack').value)}<g style="color:${q('cArt').value}">${artGroup(cx,cy)}</g><text x="${pos.verse.x}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-weight="${q('verseWeight').value}" stroke="${q('cVerse').value}" stroke-width="${q('verseStroke').value}" paint-order="stroke fill" font-size="${q('vs').value}" fill="${q('cVerse').value}">${esc(q('verse').value)}</text></g>
    <g transform="translate(${right-pad} 0)">${shapeEl(pad,pad,d.w,d.h,q('cRing').value)}${shapeEl(pad+inset,pad+inset,d.w-2*inset,d.h-2*inset,'#fff')}<text x="${pos.main.x}" y="${pos.main.y}" text-anchor="middle" font-family="${customMainFont||q('font').value}" font-size="${q('fs').value}" fill="${q('cMain').value}">${esc(q('txt').value)}</text><text x="${pos.small.x}" y="${pos.small.y}" text-anchor="middle" font-family="${customSmallFont||q('font2').value}" font-size="${q('ss').value}" fill="${q('cSmall').value}">${esc(q('small').value)}</text></g>`;
  }
  attachDrag();
@@ -890,29 +900,44 @@ async function makeCircularRasterDataURL(){
  ctx.drawImage(img,75*mmToPx-drawW/2+ax,75*mmToPx-drawH/2+ay,drawW,drawH);
  ctx.restore();
 
- // Physically remove light pixels from the raster.
- if(q('removeLight').checked){
+ // Three real output modes: greyscale, threshold, or Jarvis error diffusion.
+ {
+   const mode=document.getElementById('engraveToneMode')?.value||'jarvis';
    const threshold=+q('threshold').value||185;
-   const mono=q('monoArt').checked;
+   const contrast=+(document.getElementById('imageContrast')?.value||0);
+   const light=+(document.getElementById('imageLight')?.value||0);
+   const tone=+(q('artBrightness')?.value||0);
    const id=ctx.getImageData(0,0,px,px), d=id.data;
-   for(let i=0;i<d.length;i+=4){
-     if(d[i+3]===0) continue;
-     // User-adjustable background tone. Positive = darker, negative = lighter.
-     const tone=q('artBrightness')?(+q('artBrightness').value||0):0;
-     const shift=-(tone/70)*120;
-     d[i]=Math.max(0,Math.min(255,d[i]+shift));
-     d[i+1]=Math.max(0,Math.min(255,d[i+1]+shift));
-     d[i+2]=Math.max(0,Math.min(255,d[i+2]+shift));
-     const lum=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];
-     if(lum>=threshold){
-       d[i+3]=0;
-     }else if(mono){
-       d[i]=0; d[i+1]=0; d[i+2]=0; d[i+3]=255;
+   const values=new Float32Array(px*px);
+   const valid=new Uint8Array(px*px);
+   const c=1+contrast/100;
+   for(let k=0;k<values.length;k++){
+     const i=k*4;if(d[i+3]<128)continue;
+     let lum=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];
+     lum=Math.max(0,Math.min(255,(lum-128)*c+128+light-tone*1.1));
+     if(q('removeLight').checked && lum>=Math.min(254,Math.max(225,threshold+45))){d[i+3]=0;continue;}
+     values[k]=lum;valid[k]=1;
+   }
+   if(mode==='jarvis'){
+     // Jarvis-Judice-Ninke diffusion: 12/48, 7/48, 5/48, 3/48, 1/48.
+     const spread=[[1,0,7],[2,0,5],[-2,1,3],[-1,1,5],[0,1,7],[1,1,5],[2,1,3],[-2,2,1],[-1,2,3],[0,2,5],[1,2,3],[2,2,1]];
+     for(let y=0;y<px;y++)for(let x=0;x<px;x++){
+       const k=y*px+x;if(!valid[k])continue;
+       const old=values[k],v=old<128?0:255,err=old-v;values[k]=v;
+       for(const [dx,dy,w] of spread){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<px&&yy<px){const nk=yy*px+xx;if(valid[nk])values[nk]+=err*w/48;}}
      }
+   }
+   for(let k=0;k<values.length;k++){
+     if(!valid[k])continue;
+     const i=k*4;let v=values[k];
+     if(mode==='mono')v=v<threshold?0:255;
+     v=Math.max(0,Math.min(255,Math.round(v)));
+     if(v===255){d[i+3]=0;continue;}
+     d[i]=d[i+1]=d[i+2]=v;
    }
    ctx.putImageData(id,0,0);
  }
- 
+
  // Physically erase a clean panel behind the verse/reference so Falcon sees transparent pixels,
  // rather than relying on an SVG mask that some laser software ignores.
  if(q('clearVerseBg') && q('clearVerseBg').checked){
@@ -933,6 +958,11 @@ async function makeCircularRasterDataURL(){
  }
  return canvas.toDataURL('image/png');
 }
+async function refreshEngravePreview(){
+ if(!artSource || artSource.type!=='raster')return;
+ const img=document.getElementById('actualEngravePreview');if(!img)return;
+ try{img.src=await makeCircularRasterDataURL();}catch(e){console.warn('Engrave preview:',e);}
+}
 async function exportArtForLaser(){
  if(!artSource) return '';
  let raw='';
@@ -951,7 +981,7 @@ function exportArt(cx=75){
 }
 function exportVerse(cx=75){
  let vx=pos.verse.x-10;
- return `<text x="${vx}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-size="${q('vs').value}" fill="none" stroke="#000">${esc(q('verse').value)}</text>`;
+ return `<text x="${vx}" y="${pos.verse.y}" text-anchor="middle" font-family="${q('font3').value}" font-weight="${q('verseWeight').value}" stroke="${q('cVerse').value}" stroke-width="${q('verseStroke').value}" paint-order="stroke fill" font-size="${q('vs').value}" fill="none" stroke="#000">${esc(q('verse').value)}</text>`;
 }
 function exportCutWords(cx=75){
  const dx=cx-75;
@@ -971,15 +1001,17 @@ function safeFileName(v){
 function verseRasterData(text,font,size){
   const scale=5, pad=12;
   const c=document.createElement('canvas'),ctx=c.getContext('2d');
-  ctx.font=`${size*scale}px "${font}", Courier New, monospace`;
+  ctx.font=`${q('verseWeight').value} ${size*scale}px "${font}", Courier New, monospace`;
   const w=Math.max(20,Math.ceil(ctx.measureText(text).width+pad*2));
   const h=Math.ceil(size*scale*1.65);
   c.width=w;c.height=h;
   const x=c.getContext('2d');
   x.clearRect(0,0,w,h);
-  x.font=`${size*scale}px "${font}", Courier New, monospace`;
+  x.font=`${q('verseWeight').value} ${size*scale}px "${font}", Courier New, monospace`;
   x.textAlign='center';x.textBaseline='middle';x.fillStyle='#000000';
   x.fillText(text,w/2,h/2);
+  const extra=Math.max(0,Math.min(.5,+q('verseStroke').value||0));
+  if(extra){x.strokeStyle='#000';x.lineWidth=extra*scale;x.lineJoin='round';x.strokeText(text,w/2,h/2);}
   return {url:c.toDataURL('image/png'),w:w/scale,h:h/scale};
 }
 
@@ -1148,8 +1180,9 @@ async function buildSideBySideLaserSVG(){
  const smallPaths=cleanCutWordPaths(q('small').value,sx,sy,customSmallFont||q('font2').value,+q('ss').value);
  const cut=`<g id="CUT_${cs}mm-min_${cp}pct" data-operation="cut" data-speed-mm-min="${cs}" data-power-percent="${cp}" fill="none" stroke="#ff0000" stroke-width="0.25">${backPerimeter}<g transform="translate(${rightX} 0)"><path d="${outer}"/><path d="${inner}"/>${mainPaths}${smallPaths}</g></g>`;
  const vr=verseRasterData(q('verse').value,q('font3').value,+q('vs').value);
- const refX=vx-vr.w/2, refY=vy-vr.h*0.72;
- const ref=`<g id="LINE_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="line-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"><image id="VERSE_REFERENCE_ENGRAVE" href="${vr.url}" x="${refX}" y="${refY}" width="${vr.w}" height="${vr.h}" preserveAspectRatio="none"/></g>`;
+ const refX=Math.max(3,Math.min(d.w-vr.w-3,vx-vr.w/2));
+ const refY=Math.max(3,Math.min(d.h-vr.h-3,vy-vr.h*0.72));
+ const ref=`<g id="VERSE_ONLY_ENGRAVE_${ls}mm-min_${lp}pct" data-operation="verse-engrave" data-speed-mm-min="${ls}" data-power-percent="${lp}"><image id="VERSE_REFERENCE_ENGRAVE" href="${vr.url}" x="${refX}" y="${refY}" width="${vr.w}" height="${vr.h}" preserveAspectRatio="none"/></g>`;
  const img=`<g id="IMAGE_ENGRAVE_${is}mm-min_${ip}pct" data-operation="image-engrave" data-speed-mm-min="${is}" data-power-percent="${ip}">${laserArt}</g>`;
  const metadata={shape:d.k,width_mm:d.w,height_mm:d.h,cut:{speed_mm_min:cs,power_percent:cp},image_engrave:{speed_mm_min:is,power_percent:ip},line_engrave:{speed_mm_min:ls,power_percent:lp}};
  const tagExtra=q('loopOn').checked?Math.max(6,+q('loopH').value||14):0;
@@ -1716,7 +1749,8 @@ async function generateLaserBackground(){
        artSource={type:'raster',data:fr.result,w:im.naturalWidth,h:im.naturalHeight};
        const rl=document.getElementById('removeLight'), mo=document.getElementById('monoArt'), th=document.getElementById('threshold'), tn=document.getElementById('thresholdNum');
        if(rl)rl.checked=true;
-       if(mo)mo.checked=((document.getElementById('engraveToneMode')?.value||'mono')==='mono');
+       if(mo)mo.checked=((document.getElementById('engraveToneMode')?.value||'jarvis')==='mono');
+       refreshEngravePreview();
        if(th)th.value=185;
        if(tn)tn.value=185;
        rebuildArtwork();
@@ -1739,7 +1773,7 @@ async function generateLaserBackground(){
 
 <script>
 function applyEngraveToneMode(){
- const mode=document.getElementById('engraveToneMode')?.value||'mono';
+ const mode=document.getElementById('engraveToneMode')?.value||'jarvis';
  const mono=document.getElementById('monoArt');
  const rem=document.getElementById('removeLight');
  if(rem)rem.checked=true;
@@ -1748,7 +1782,7 @@ function applyEngraveToneMode(){
  if(typeof draw==='function')draw();
 }
 function updateEngravePreview(){
- const mode=document.getElementById('engraveToneMode')?.value||'mono';
+ const mode=document.getElementById('engraveToneMode')?.value||'jarvis';
  const v=+(document.getElementById('engraveDepth')?.value||55);
  const o=document.getElementById('engraveDepthOut'); if(o)o.textContent=v+'%';
  const r=document.getElementById('engraveQualityResult');
@@ -1759,9 +1793,10 @@ function updateEngravePreview(){
  if(tn)tn.value=Math.max(120,Math.min(220,threshold));
  if(r){
    if(mode==='gray') r.innerHTML='✓ <b>Greyscale depth mode.</b> Grey tones are retained so compatible laser software can vary engraving intensity. Current simulation: '+v+'%. Run a material test for the actual wood/acrylic/slate.';
-   else r.innerHTML='✓ <b>Black & white mode.</b> Artwork is thresholded to strong black marks for crisp, predictable engraving.';
+   else if(mode==='jarvis')r.innerHTML='✓ <b>Jarvis dithering.</b> Grey detail becomes fine black dots; preview the result and test on scrap.'; else r.innerHTML='✓ <b>High contrast.</b> Best for logos and silhouettes, not detailed photographs.';
  }
  if(typeof draw==='function')draw();
+ refreshEngravePreview();
 }
 </script>
 
